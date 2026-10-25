@@ -1736,7 +1736,8 @@ buildSliders();buildConsts();syncControls();update();
   el.classList.toggle("fail",pass<checks.length);
   el.lastElementChild.textContent=pass===checks.length?`Model checks: ${pass}/${checks.length} pass (v1 parity + v2 sanity)`:`Model checks: ${pass}/${checks.length} pass`;
   el.title=checks.map(c=>(c.ok?"✓ ":"✗ ")+c.name).join("\n");})();
-/* Intro opens only from the "How it works" button, never on load */
+/* Intro pops up on a visitor's first visit; "How it works" reopens it any time */
+(function(){let seen=false;try{seen=localStorage.getItem("wds-intro-seen")==="1";}catch(e){}if(!seen)openIntro();})();
 </script>
 
 </body></html>
