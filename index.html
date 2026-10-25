@@ -3,7 +3,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 /* Layout: header → tab bar (Office · Dashboard · Model) → Office = design picker + 3D stage beside performance panel; intro dialogue overlays on first visit */
 :root{
@@ -14,7 +14,7 @@
   --before:#5F6E82; --before-fill:#94A3B8; --before-soft:#E6EBF1;
   --lead:#0F766E; --good:#15803D; --bad:#DC2626; --warn:#B45309;
   --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
-  --f-body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+  --f-body:"Manrope","Segoe UI",system-ui,sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
@@ -28,8 +28,8 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
-  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:18px 48px}
-.wrap{max-width:1360px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:14px 48px}
+.wrap{max-width:1480px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
 h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
 h1{font-size:clamp(1.45rem,1.1rem + 1.3vw,2rem);font-weight:700}
 h2{font-size:1.1rem;font-weight:600}
@@ -50,7 +50,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .btn:hover{background:var(--sunk)}
 .btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
-.tabs button{border:0;background:transparent;padding:10px 14px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap;font-size:.95rem}
+h1{line-height:1.1}
+.tabs button{border:0;background:transparent;padding:7px 14px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap;font-size:.95rem}
 .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
 .view{display:flex;flex-direction:column;gap:16px}
 
@@ -77,10 +78,14 @@ button,input,select,textarea{font:inherit;color:inherit}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 
 /* Office split */
-.main{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(0,1fr);gap:16px;align-items:start}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;align-items:stretch;height:max(600px,calc(100vh - 150px))}
+.main .panel{overflow-y:auto}
+@media (max-width:980px){.main{height:auto}}
 @media (max-width:980px){.main{grid-template-columns:minmax(0,1fr)}}
 .stage{position:relative;overflow:hidden;background:var(--stage)}
-#scene{position:relative;width:100%;aspect-ratio:16/10;max-height:72vh;touch-action:none}
+.stage{min-height:0}
+#scene{position:absolute;inset:0;touch-action:none}
+@media (max-width:980px){.stage{min-height:0}#scene{position:relative;inset:auto;width:100%;aspect-ratio:16/11}}
 @media (max-width:620px){#scene{aspect-ratio:4/4.4}}
 #scene canvas{display:block;width:100%!important;height:100%!important;cursor:grab}
 #overlay{position:absolute;inset:0;pointer-events:none;overflow:hidden}
@@ -145,7 +150,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .pc-note{font-size:.74rem;color:var(--muted)}
 
 /* Performance side panel */
-.panel{padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel{padding:14px 16px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .pm{display:flex;flex-direction:column;gap:10px}
 .pm-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:baseline}
 .pm-row .l{font-weight:700;font-size:.9rem}
@@ -204,6 +209,179 @@ td.win.a{color:var(--a);font-weight:700} td.win.b{color:var(--b);font-weight:700
 .mps b{font-family:var(--f-display);font-size:1.4rem;font-weight:700;display:block}
 .mps span{font-size:.76rem;color:var(--muted)}
 
+
+
+/* Office side panel v2 */
+.panel{padding:14px 16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.step{display:flex;flex-direction:column;gap:6px}
+.step .eyebrow em{font-style:normal;display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:.66rem;margin-right:6px;letter-spacing:0}
+.dsel{display:flex;flex-direction:column;gap:6px}
+.dbtn{display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:10px;align-items:center;text-align:left;padding:6px 12px;border-radius:11px;border:2px solid var(--line);background:var(--surface);cursor:pointer;transition:border-color .15s,background .15s,transform .15s}
+.dbtn:hover{transform:translateX(2px);border-color:var(--muted)}
+.dbtn i{width:14px;height:14px;border-radius:50%}
+.dbtn[data-p="Before AI"] i{background:var(--before-fill)} .dbtn[data-p="Option A"] i{background:var(--a-fill)} .dbtn[data-p="Option B"] i{background:var(--b-fill)}
+.dbtn b{font-family:var(--f-display);font-size:.95rem;font-weight:700;display:block;line-height:1.2}
+.dbtn small{font-size:.76rem;color:var(--muted)}
+.dbtn kbd{font-family:var(--f-mono);font-size:.68rem;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 5px}
+.dbtn[aria-pressed="true"][data-p="Before AI"]{border-color:var(--before-fill);background:var(--before-soft)}
+.dbtn[aria-pressed="true"][data-p="Option A"]{border-color:var(--a-fill);background:var(--a-soft)}
+.dbtn[aria-pressed="true"][data-p="Option B"]{border-color:var(--b-fill);background:var(--b-soft)}
+.dbtn[aria-pressed="true"] small{color:var(--ink)}
+.dbtn[aria-pressed="true"] i{box-shadow:0 0 0 4px color-mix(in srgb,currentColor 0%,transparent),0 0 0 3px var(--surface)}
+.ddesc{font-size:.8rem;line-height:1.4;display:flex;flex-direction:column;gap:5px;color:var(--muted)}
+.ddesc .chips .chip{font-size:.72rem}
+.ddesc.a .chip{background:var(--a-soft);color:var(--a)} .ddesc.b .chip{background:var(--b-soft);color:var(--b)}
+.full-seg{display:grid;grid-template-columns:1fr 1fr}
+.pm{display:flex;flex-direction:column;gap:10px}
+.pm-row{display:flex;flex-direction:column;align-items:stretch;gap:4px}
+.pm-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pm-top .l{font-weight:700;font-size:.92rem}
+.pm-top .l small{font-weight:400;color:var(--muted);font-size:.72rem;margin-left:4px}
+.badge{font-family:var(--f-display);font-weight:800;font-size:1rem;padding:1px 9px;border-radius:999px;line-height:1.4;white-space:nowrap}
+.badge.good{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good)}
+.badge.bad{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
+.badge.base{background:var(--sunk);color:var(--muted);font-size:.8rem;font-weight:700}
+.bars{display:grid;grid-template-columns:42px minmax(0,1fr) 38px;gap:1px 8px;align-items:center}
+.bars .who{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.bars .num{font-family:var(--f-mono);font-size:.8rem;text-align:right;font-variant-numeric:tabular-nums}
+.bars .num.now{font-weight:700;font-size:.92rem}
+.bt{position:relative;height:6px;background:var(--sunk);border-radius:5px;overflow:hidden}
+.bt.now{height:13px;border-radius:7px}
+.bt i,.bt u{position:absolute;top:0;bottom:0;left:0;transition:left .45s cubic-bezier(.3,.9,.3,1),width .45s cubic-bezier(.3,.9,.3,1)}
+.bt i{border-radius:inherit}
+.bt u.good{background:var(--good)} .bt u.bad{background:var(--bad)}
+.bt u.lost{background:repeating-linear-gradient(-45deg,currentColor 0 3px,transparent 3px 7px);opacity:.75}
+.bt u.lost.good{background-color:transparent;color:var(--good)} .bt u.lost.bad{background-color:transparent;color:var(--bad)}
+.pm-right{display:flex;align-items:center;gap:8px}
+.pts{font-family:var(--f-mono);font-size:.78rem;font-weight:600}
+.pm-cap b{font-family:var(--f-mono)}
+
+
+/* HUD inside the stage */
+.hud{position:absolute;left:12px;top:12px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:calc(100% - 24px);z-index:2}
+.hud-row{display:flex;flex-wrap:wrap;gap:6px}
+.hud-seg{display:inline-flex;padding:4px;gap:3px;border-radius:14px;background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(15,23,42,.1);box-shadow:0 6px 20px rgba(15,23,42,.14)}
+.hud-seg button,.hud .dbtn{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:10px;font-family:var(--f-body);font-weight:700;font-size:.88rem;color:#475569;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s}
+.hud-seg button:hover{background:rgba(15,23,42,.06)}
+.hud-seg button:focus-visible{outline:2px solid #2563EB;outline-offset:1px}
+.hud .dbtn i{width:10px;height:10px;border-radius:50%;flex:none}
+.hud .dbtn[data-p="Before AI"] i{background:#94A3B8} .hud .dbtn[data-p="Option A"] i{background:#F59E0B} .hud .dbtn[data-p="Option B"] i{background:#3B82F6}
+.hud .dbtn[aria-pressed="true"][data-p="Before AI"]{background:#64748B;color:#fff}
+.hud .dbtn[aria-pressed="true"][data-p="Option A"]{background:#F59E0B;color:#1F1300}
+.hud .dbtn[aria-pressed="true"][data-p="Option B"]{background:#2563EB;color:#fff}
+.hud .dbtn[aria-pressed="true"] i{background:#fff!important}
+.hud-seg.small button{padding:8px 11px;font-size:.84rem}
+.hud-seg.small button[aria-pressed="true"]{background:#0F172A;color:#fff}
+.hud-cap{font-size:.8rem;font-weight:700;background:rgba(15,23,42,.78);color:#fff;padding:5px 11px;border-radius:9px;max-width:100%}
+.stage-tools{top:auto!important;bottom:12px}
+.tap-hint{top:14px!important;bottom:auto;left:auto!important;right:14px}
+.pcard{top:64px!important}
+@media (max-width:620px){
+  .hud{left:8px;top:8px;max-width:calc(100% - 16px)}
+  .hud-seg button,.hud .dbtn{padding:6px 8px;font-size:.76rem;gap:5px}
+  .hud .dbtn i{display:none}
+  .hud-cap{display:none}
+  #scene{aspect-ratio:1/1.3!important}
+  .tap-hint{display:none}
+  .stage-tools{display:none!important}
+  .door small{display:none}
+  .pcard{top:auto!important}
+}
+
+/* Glass layer v3 */
+.hud-seg,.hud-cap,.stage-tools button,.door,.tap-hint{
+  background:rgba(15,23,42,.38)!important;color:#F8FAFC!important;border:1px solid rgba(255,255,255,.22)!important;
+  -webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);
+  box-shadow:0 8px 28px rgba(2,6,23,.22),inset 0 1px 0 rgba(255,255,255,.18)!important}
+.hud-seg{padding:4px;border-radius:999px}
+.hud-seg button,.hud .dbtn{font-weight:500;font-size:.86rem;letter-spacing:.005em;color:rgba(248,250,252,.82);border-radius:999px;padding:7px 14px}
+.hud-seg button:hover{background:rgba(255,255,255,.12)}
+.hud .dbtn[aria-pressed="true"][data-p="Before AI"]{background:rgba(148,163,184,.55);color:#fff}
+.hud .dbtn[aria-pressed="true"][data-p="Option A"]{background:rgba(245,158,11,.78);color:#fff}
+.hud .dbtn[aria-pressed="true"][data-p="Option B"]{background:rgba(37,99,235,.8);color:#fff}
+.hud .dbtn[aria-pressed="true"]{font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+.hud .dbtn i{width:8px;height:8px}
+.hud-seg.small button[aria-pressed="true"]{background:rgba(255,255,255,.9);color:#0F172A}
+.hud-cap{font-weight:500;font-size:.8rem;border-radius:999px;padding:6px 14px}
+.stage-tools button{font-weight:500;border-radius:999px;padding:6px 12px}
+.door{border-radius:16px;padding:10px 14px;max-width:min(240px,58%)}
+.door .n{font-family:var(--f-display);font-weight:600;font-size:1.2rem;color:#fff}
+.door small{color:rgba(248,250,252,.72)!important;font-weight:400;font-size:.7rem}
+.door.bump{animation:doorpop .6s cubic-bezier(.2,1.4,.4,1)}
+.door.bump .n{animation:none}
+@keyframes doorpop{0%{transform:translateY(8px) scale(.94);opacity:.4}100%{transform:none;opacity:1}}
+.tap-hint{transform:none;font-weight:500;font-size:.8rem;padding:7px 14px 7px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:8px;animation:floaty 2.6s ease-in-out infinite}
+.tap-hint::before{content:"";width:8px;height:8px;border-radius:50%;background:#60A5FA;box-shadow:0 0 0 0 rgba(96,165,250,.7);animation:ping 1.6s ease-out infinite}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(96,165,250,.7)}100%{box-shadow:0 0 0 9px rgba(96,165,250,0)}}
+.bub{font-weight:600;letter-spacing:.02em}
+.zl b{font-weight:500} .zl span{font-weight:600}
+h1{font-weight:600} .tabs button{font-weight:600}
+@media (prefers-reduced-motion: reduce){.tap-hint,.tap-hint::before,.door.bump{animation:none}}
+
+
+/* Person card v3: fewer words */
+.pc-body{gap:10px}
+.pc-rt{font-weight:600;font-size:.82rem!important}
+.pc-rt.ra{color:var(--a)!important} .pc-rt.rb{color:var(--b)!important}
+.pc-now{font-size:.92rem;line-height:1.4}
+.pc-chips{display:flex;flex-wrap:wrap;gap:5px}
+.pc-chips span{font-size:.74rem;font-weight:600;padding:3px 8px;border-radius:999px}
+.pc-chips .nu{background:var(--sunk);color:var(--muted)}
+.pc-chips .up{background:color-mix(in srgb,var(--good) 14%,transparent)} .pc-chips .dn{background:color-mix(in srgb,var(--bad) 14%,transparent)}
+.pc-kpi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.pc-kpi div{background:var(--sunk);border-radius:10px;padding:7px 10px;display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.pc-kpi span{font-size:.74rem;color:var(--muted)}
+.pc-kpi b{font-family:var(--f-display);font-weight:600;font-size:.98rem}
+
+
+/* bottom-left cluster */
+.bl{position:absolute;left:12px;bottom:12px;display:flex;align-items:flex-end;gap:14px;max-width:calc(100% - 200px);z-index:2;pointer-events:none}
+.bl .door{position:static!important;max-width:240px;pointer-events:auto}
+.bl .tap-hint{position:static!important;transform:none;margin-bottom:6px;transition:opacity .3s}
+@media (max-width:620px){.bl{max-width:calc(100% - 24px)}.bl .tap-hint{display:none}}
+/* Person card v4: labelled blocks */
+.pc-body{gap:12px}
+.pc-lab{display:block;font-size:.66rem;letter-spacing:.09em;text-transform:uppercase;font-weight:700;color:var(--muted);margin-bottom:4px}
+.pc-lab i{font-style:normal;text-transform:none;letter-spacing:0;font-weight:500;margin-left:4px}
+.pc-role{padding:10px 12px;border-radius:12px}
+.pc-role .pc-lab{margin-bottom:2px}
+.pc-role b{font-size:1.02rem}
+.pc-now{font-size:.9rem;line-height:1.4;margin:0}
+.pc-say{position:relative;margin:0;font-size:.86rem;font-style:italic;line-height:1.4;background:var(--sunk);padding:8px 12px;border-radius:12px 12px 12px 4px}
+.pc-say::before{content:"“";font-family:var(--f-display);font-style:normal;font-weight:700;color:var(--muted);margin-right:2px}
+.pc-say::after{content:"”";font-family:var(--f-display);font-style:normal;font-weight:700;color:var(--muted);margin-left:1px}
+.pc-list{display:flex;flex-direction:column}
+.pc-list>div{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:8px;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--line);font-size:.84rem}
+.pc-list>div:last-child{border-bottom:0}
+.pc-list b{font-family:var(--f-display);font-weight:600;font-size:.95rem;text-align:right}
+.pc-from{color:var(--muted);font-family:var(--f-mono);font-size:.8rem}
+.pc-arr{font-weight:700}
+.pc-list.perf>div{grid-template-columns:minmax(0,1fr) auto 44px}
+.pc-list.perf em{font-style:normal;font-size:.72rem;color:var(--muted);text-align:right}
+.pc-list .up{color:var(--good)} .pc-list .dn{color:var(--bad)}
+
+/* Clean performance column */
+.pm-head{display:flex;flex-direction:column;gap:1px}
+.pm-head h2{font-size:1.15rem}
+.pm-sub{font-size:.8rem;color:var(--muted)}
+.pm{display:flex;flex-direction:column;gap:18px}
+.pmr{display:flex;flex-direction:column;gap:6px}
+.pmr-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.pmr-top .l{font-size:.86rem;font-weight:700;color:var(--muted)}
+.pmr-top .l small{font-weight:400;font-size:.72rem;margin-left:4px}
+.pmr-top .v{font-family:var(--f-display);font-size:1.7rem;font-weight:700;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+.bt1{position:relative;height:8px;border-radius:4px;background:var(--sunk)}
+.bt1 i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;transition:width .5s cubic-bezier(.3,.9,.3,1)}
+.bt1 s,.pm-key .tick{position:absolute;top:-4px;bottom:-4px;width:3px;border-radius:2px;background:var(--ink);transition:left .5s}
+.pm-key .tick{position:relative;display:inline-block;height:13px;vertical-align:-2px;top:0;margin-right:4px}
+.pmr-chg{font-size:.84rem;font-weight:700}
+.pmr-chg span{font-weight:400;color:var(--muted)}
+.pmr-chg.good{color:var(--good)} .pmr-chg.bad{color:var(--bad)} .pmr-chg.base{color:var(--muted);font-weight:400}
+.pm-key{font-size:.74rem;color:var(--muted);margin-top:auto}
+.bt1 .band{position:absolute;top:-3px;bottom:-3px;border-radius:6px;background:var(--ink);opacity:.12;transition:left .5s,width .5s}
+.pmr-top .v small{font-size:.9rem;font-weight:600;margin-left:1px;color:var(--muted)}
+.leaves .chips .chip{font-size:.78rem}
 
 /* Dashboard v2 */
 .headline{padding:22px 24px;display:flex;flex-direction:column;gap:18px;background:linear-gradient(135deg,var(--surface) 55%,var(--b-soft))}
@@ -343,51 +521,45 @@ textarea{width:100%;min-height:84px;border:1px solid var(--line);border-radius:8
 
   <!-- OFFICE -->
   <section class="view" id="view-office">
-    <div class="designs" role="group" aria-label="Choose a job design">
-      <button class="dcard" data-p="Before AI" type="button">
-        <span class="dt"><i style="background:var(--before-fill)"></i><b>Before AI</b></span>
-        <p>No AI. Each coordinator handles a request from intake to signed letter.</p>
-      </button>
-      <button class="dcard" data-p="Option A" type="button">
-        <span class="dt"><i style="background:var(--a-fill)"></i><b>Automate only</b></span>
-        <p>AI sends the standard letters. The job is not redesigned: people get only what the AI rejects.</p>
-        <span class="chips"><span class="chip">Exceptions only</span><span class="chip">Chase SLAs</span><span class="chip">Escalate anything unusual</span></span>
-      </button>
-      <button class="dcard" data-p="Option B" type="button">
-        <span class="dt"><i style="background:var(--b-fill)"></i><b>Automate + redesign</b></span>
-        <p>Same AI. The job is rebuilt around judgment. Compared with Automate only, it adds:</p>
-        <span class="chips"><span class="chip">+ Own cases end to end</span><span class="chip">+ Tune the AI's rules</span><span class="chip">+ Peer coaching</span><span class="chip">+ Feedback on results</span></span>
-      </button>
-    </div>
-
     <div class="main">
       <div class="card stage">
         <div id="scene" aria-label="3D office of the HR Operations team"></div>
         <div id="overlay"></div>
-        <div class="tap-hint" id="tap-hint">Tap a person to see their story</div>
+        <div class="hud">
+          <div class="hud-row">
+            <div class="hud-seg" role="group" aria-label="Job design">
+              <button class="dbtn" data-p="Before AI" type="button"><i></i>Before AI</button>
+              <button class="dbtn" data-p="Option A" type="button"><i></i>Automate only</button>
+              <button class="dbtn" data-p="Option B" type="button"><i></i>Automate + redesign</button>
+            </div>
+            <div class="hud-seg small seg-h" role="group" aria-label="Time after rollout">
+              <button data-h="3m" type="button">3 mo</button>
+              <button data-h="12m" type="button">12 mo</button>
+            </div>
+          </div>
+          <div class="hud-cap" id="ddesc"></div>
+        </div>
         <div class="stage-tools">
           <button id="btn-view" type="button">Reset view</button>
           <button id="btn-pause" type="button">Pause</button>
         </div>
-        <div class="door" id="door"><div class="n" id="door-n">+0 left work</div><small id="door-cap">turnover pressure · illustrative</small></div>
+        <div class="bl">
+          <div class="door" id="door"><div class="n" id="door-n">+0 left work</div><small id="door-cap">turnover pressure · illustrative</small></div>
+          <div class="tap-hint" id="tap-hint">Tap a person to see their story</div>
+        </div>
         <div class="pcard" id="pcard" hidden role="dialog" aria-label="Team member details"><button class="pc-x" id="pcard-close" type="button" aria-label="Close details">×</button><div class="pc-body"></div></div>
       </div>
 
       <aside class="card panel">
-        <div class="hz">
-          <div class="seg seg-h" role="group" aria-label="Time after rollout">
-            <button data-h="3m" type="button">3 months</button>
-            <button data-h="12m" type="button">12 months</button>
-          </div>
-          <span class="muted" style="font-size:.8rem">after the AI rollout</span>
-        </div>
-        <div>
+        <div class="pm-head">
           <span class="eyebrow">Performance</span>
           <h2 id="pm-title">Automate + redesign</h2>
+          <span class="pm-sub" id="pm-sub">12 months after rollout</span>
         </div>
         <div class="pm" id="pm"></div>
-        <div class="verdict" id="verdict"></div>
-        <button class="btn" type="button" data-goto="dash">See the full comparison →</button>
+        <p class="pm-key"><span class="tick"></span> Before AI · shaded band = likely range</p>
+        <div class="verdict" id="verdict" hidden></div>
+        <button class="btn" type="button" data-goto="dash">Compare all three →</button>
       </aside>
     </div>
   </section>
@@ -421,6 +593,11 @@ textarea{width:100%;min-height:84px;border:1px solid var(--line);border-radius:8
       <div class="diag" id="diag"></div>
     </div>
 
+    <div class="card sec leaves">
+      <div><span class="eyebrow">Read with care</span><h2>What this model leaves out</h2></div>
+      <div class="chips"><span class="chip">Headcount cuts after automation</span><span class="chip">Training cost of redesign</span><span class="chip">Governance of AI rule changes</span><span class="chip">Job insecurity</span><span class="chip">Pay and job market</span><span class="chip">Real survey data</span></div>
+      <p class="muted" style="font-size:.82rem">Numbers are illustrative indices built from JCM and SDT. Shaded bands show the likely range. Use the direction of the results, not the exact values.</p>
+    </div>
     <details class="card numbers">
       <summary>See all the numbers</summary>
       <div style="display:flex;flex-direction:column;gap:16px;margin-top:12px">
@@ -433,6 +610,11 @@ textarea{width:100%;min-height:84px;border:1px solid var(--line);border-radius:8
 
   <!-- MODEL -->
   <section class="view" id="view-model" hidden>
+    <div class="card sec">
+      <div class="sec-head"><div><span class="eyebrow">Model version</span><h2>Which scoring model to use</h2>
+        <p>v2 fixes the problems found in review: a real no-AI baseline, turnover based on a realistic yearly rate, a smaller (research-sized) effect on quality, a fairer Automate only profile, and a learning dip after redesign. v1 is the original handoff model, kept for comparison.</p></div>
+        <div class="seg" role="group" aria-label="Model version" id="seg-model"><button data-m="v2" type="button">v2 · corrected</button><button data-m="v1" type="button">v1 · original</button></div></div>
+    </div>
     <div class="pills" aria-live="polite">
       <span class="pill" id="pill-parity"><span class="dot"></span><span>Checking v1 parity…</span></span>
       <span class="pill" id="pill-settings"><span class="dot"></span><span>Model: v1 settings</span></span>
@@ -453,7 +635,7 @@ textarea{width:100%;min-height:84px;border:1px solid var(--line);border-radius:8
       <div class="card sec">
         <div class="sec-head"><div><span class="eyebrow">How the score is built</span><h2 id="calc-title">Redesign, step by step</h2></div></div>
         <div class="calc" id="calc"></div>
-        <p class="muted" style="font-size:.8rem">Feedback means knowing the results of your own work. The 3-month retention risk is 55% of the 12-month value. Volume erodes over 12 months as retention risk rises.</p>
+        <p class="muted" style="font-size:.8rem">Feedback means knowing the results of your own work. In v2, Before AI uses manual baselines (no AI), turnover is a yearly % from a 15% base, and redesign has a short learning dip at 3 months.</p>
       </div>
       <div class="card sec">
         <div class="sec-head">
@@ -488,18 +670,18 @@ textarea{width:100%;min-height:84px;border:1px solid var(--line);border-radius:8
             <tr><td><span class="tag b">B</span> AI rule tuner</td><td>Rules board</td><td>Autonomy 6, Feedback 6: decides what the AI may send.</td></tr>
             <tr><td><span class="tag b">B</span> Case owner</td><td>Desks, meeting</td><td>Task identity 6: owns exceptions start to finish.</td></tr>
             <tr><td><span class="tag b">B</span> Peer coach</td><td>Lounge</td><td>SDT relatedness 5: peer coaching pairs.</td></tr>
-            <tr><td>Leaving</td><td>Exit door</td><td><code>+N = round(Retention risk ÷ 8.5)</code>, a pressure index. Only 0–2 people walk out, so it never reads as headcount.</td></tr>
+            <tr><td>Leaving</td><td>Exit door</td><td>v2: expected leavers = turnover % × 6 people. A walker appears only when about 1 person is expected to leave.</td></tr>
           </tbody>
         </table></div>
       </div>
       <div class="card sec full">
         <div class="sec-head"><div><span class="eyebrow">Read before using for prediction</span><h2>Model assumptions and limits</h2></div></div>
         <ul class="limits">
-          <li><b>Autonomy appears in both JCM and SDT</b><span>In v1 the two autonomy inputs share the same defaults, so autonomy counts twice. They are separate sliders: job autonomy is what the role allows, felt autonomy is the person's experience. With real data, measure each with its own scale.</span></li>
-          <li><b>Only Volume and Retention change over time</b><span>Quality and Motivation are the same at 3 and 12 months by design. The "Automate only wins early" result comes from volume alone (a 3.3-point gap in v1).</span></li>
-          <li><b>Higher autonomy lowers volume, by assumption</b><span>0.75 × (7 − Autonomy) says people with more discretion spend time on judgment. This is a modelling choice; change the coefficient to test it.</span></li>
-          <li><b>The exit door is illustrative</b><span>+N is Retention risk ÷ 8.5. It signals turnover pressure, not a resignation forecast.</span></li>
-          <li><b>Not yet calibrated</b><span>Weights are set by reasoning. To use this for prediction, collect JCM/SDT survey scores and real outcomes (throughput, error rate, exits), estimate the weights by regression and enter them above.</span></li>
+          <li><b>All inputs are illustrative</b><span>The 1–7 scores are reasoned estimates, not survey data. The shaded band on each bar shows the range if every score were half a point higher or lower.</span></li>
+          <li><b>Weights are not estimated from data</b><span>v2 effect sizes follow published research directions (job characteristics link strongly to motivation, weakly to objective performance; satisfaction links modestly to turnover), but the exact numbers are set by reasoning. Calibrate with real survey scores and outcomes before using it to predict.</span></li>
+          <li><b>MPS multiplies scores</b><span>Hackman &amp; Oldham's formula exaggerates gaps (16 vs 192). Research finds a simple additive index predicts about as well. It is kept because it is the classic model.</span></li>
+          <li><b>Autonomy appears in both theories</b><span>Job autonomy (what the role allows) and felt autonomy (what people experience) are separate inputs and have different values in v2.</span></li>
+          <li><b>What the model leaves out</b><span>Headcount decisions, training cost, governance of AI rule changes, job insecurity, pay and the job market. Each can change real outcomes.</span></li>
         </ul>
       </div>
       <div class="card sec full">
@@ -565,7 +747,7 @@ const DEFAULTS = Object.freeze({
   "Option A": {SV:3,TI:2,TS:3,Autonomy:2,Feedback:3,SDT_Autonomy:2,SDT_Competence:3,SDT_Relatedness:2},
   "Option B": {SV:5,TI:6,TS:5,Autonomy:6,Feedback:6,SDT_Autonomy:6,SDT_Competence:6,SDT_Relatedness:5}
 });
-function scoreProfile(p, S){
+function scoreProfileV1(p, S){
   const coreJcm=(p.SV+p.TI+p.TS)/3;
   const mps=coreJcm*p.Autonomy*p.Feedback;
   const mpsNorm=mps/S.MPS_MAX;
@@ -579,7 +761,37 @@ function scoreProfile(p, S){
     Volume_3m:volume,Quality_3m:quality,Motivation_3m:motivation,RetentionRisk_3m:retention*S.RR_3M_MULT,
     Volume_12m:volume*(1-S.VOL_12M_EROSION*retention/100),Quality_12m:quality,Motivation_12m:motivation,RetentionRisk_12m:retention};
 }
-function scoreAll(inputs,S){const r={};for(const k of PROFILES)r[k]=scoreProfile(inputs[k],S);return r;}
+/* ================= v2 model (corrected: manual baseline, realistic turnover, smaller quality effect, transition dip) ================= */
+const V2 = Object.freeze({...V1, MODEL:"v2",
+  MANUAL_CAPACITY:55, BASE_AI_ACCURACY:82, MANUAL_ACCURACY:80, QUALITY_SPAN:12,
+  BASE_TURNOVER:0.15, TURNOVER_SENS:1.0, VACANCY_COST:0.5, QUAL_TURNOVER:0.1,
+  DIP_VOL:0.01, DIP_QUAL:0.4, TEAM:6});
+const DEFAULTS_V2 = Object.freeze({
+  "Before AI":{SV:4,TI:5,TS:5,Autonomy:3,Feedback:3,SDT_Autonomy:4,SDT_Competence:5,SDT_Relatedness:4},
+  "Option A": {SV:3,TI:3,TS:4,Autonomy:2,Feedback:3,SDT_Autonomy:3,SDT_Competence:4,SDT_Relatedness:3},
+  "Option B": {SV:5,TI:6,TS:5,Autonomy:6,Feedback:6,SDT_Autonomy:5,SDT_Competence:5,SDT_Relatedness:5}
+});
+function scoreProfileV2(p,S,ctx){
+  const L=S.LIKERT_MAX;
+  const coreJcm=(p.SV+p.TI+p.TS)/3, mps=coreJcm*p.Autonomy*p.Feedback, mpsNorm=mps/S.MPS_MAX;
+  const sdt=(p.SDT_Autonomy+p.SDT_Competence+p.SDT_Relatedness)/3, sdtNorm=sdt/L;
+  const motivation=100*(S.W_MOT_MPS*mpsNorm+S.W_MOT_SDT*sdtNorm);
+  const hasAI=ctx?ctx.hasAI:true, b=(ctx&&ctx.before)||p;
+  const learn=["SV","TI","Autonomy","Feedback"].reduce((s,k)=>s+Math.max(0,p[k]-b[k]),0); // new skills to build
+  const volume=(hasAI?S.BASE_AI_CAPACITY:S.MANUAL_CAPACITY)+S.VOL_COEF_LOW_AUT*(L-p.Autonomy)-S.VOL_COEF_FB*p.Feedback;
+  const quality=(hasAI?S.BASE_AI_ACCURACY:S.MANUAL_ACCURACY)+S.QUALITY_SPAN*(S.W_Q_TI*p.TI/L+S.W_Q_FB*p.Feedback/L+S.W_Q_COMP*p.SDT_Competence/L);
+  const rate=Math.min(0.6,Math.max(0.03,S.BASE_TURNOVER*(1+S.TURNOVER_SENS*(50-motivation)/50)));
+  const rate3=1-Math.pow(1-rate,0.25);
+  return {coreJcm,MPS:mps,MPS_norm:mpsNorm,SDT:sdt,SDT_norm:sdtNorm,Motivation:motivation,Volume:volume,Quality:quality,Retention:rate*100,
+    learn,rate,rate3,hasAI,expectedLeavers:rate*S.TEAM,expectedLeavers3:rate3*S.TEAM,
+    Volume_3m:volume*(1-S.DIP_VOL*learn)*(1-S.VACANCY_COST*rate3), Quality_3m:quality-S.DIP_QUAL*learn-S.QUAL_TURNOVER*rate3*100,
+    Motivation_3m:motivation, RetentionRisk_3m:rate3*100,
+    Volume_12m:volume*(1-S.VACANCY_COST*rate), Quality_12m:quality-S.QUAL_TURNOVER*rate*100,
+    Motivation_12m:motivation, RetentionRisk_12m:rate*100};
+}
+function scoreProfile(p,S,ctx){return S.MODEL==="v2"?scoreProfileV2(p,S,ctx):scoreProfileV1(p,S);}
+function ctxOf(inputs,k){return {hasAI:k!=="Before AI",before:inputs["Before AI"]};}
+function scoreAll(inputs,S){const r={};for(const k of PROFILES)r[k]=scoreProfile(inputs[k],S,ctxOf(inputs,k));return r;}
 function atH(r,h){return h==="3m"
   ?{Volume:r.Volume_3m,Quality:r.Quality_3m,Motivation:r.Motivation_3m,Retention:r.RetentionRisk_3m}
   :{Volume:r.Volume_12m,Quality:r.Quality_12m,Motivation:r.Motivation_12m,Retention:r.RetentionRisk_12m};}
@@ -621,8 +833,9 @@ function walkersFor(leaveCount){return Math.min(2,Math.floor((leaveCount+1)/4));
 function buildCast({scores,profile,horizon,settings,castSize=TEAM_SIZE}){
   const r=scores[profile];
   const rr=horizon==="3m"?r.RetentionRisk_3m:r.RetentionRisk_12m;
-  const leaveCount=Math.max(0,Math.round(rr/settings.LEAVE_DIVISOR));
-  const walkers=walkersFor(leaveCount);
+  let leaveCount,walkers;
+  if(settings.MODEL==="v2"){leaveCount=horizon==="3m"?r.expectedLeavers3:r.expectedLeavers;walkers=Math.min(2,Math.floor(leaveCount+0.25));}
+  else{leaveCount=Math.max(0,Math.round(rr/settings.LEAVE_DIVISOR));walkers=walkersFor(leaveCount);}
   const n=castSize-walkers;
   const w={...BASE_WEIGHTS[profile][horizon]};
   if(profile==="Option A"){w.exception_firefight+=(w.rule_tune||0)+(w.coach_pair||0)+(w.complex_case||0);w.rule_tune=0;w.coach_pair=0;w.complex_case=0;}
@@ -671,18 +884,18 @@ const PEOPLE=[
 const LEAD={name:"Mei Chan",role:"HR Ops Team Lead"};
 const TASKS={
   routine_desk:{
-    "Before AI":["Typing an employment verification letter from scratch","Checking a leave form for missing approvals","Building an onboarding pack for Monday's new joiners","Keying an address change into the HRIS","Drafting a salary-review confirmation letter","Filing signed contract variations"],
-    "Option A":["Clearing the queue of forms the AI flagged as incomplete"],
-    "Option B":["Spot-checking a sample of letters the AI auto-issued today"]},
-  exception_firefight:["Reworking a contract-variation letter the AI rejected for a missing salary field","Chasing a visa support letter that is 2 days past SLA","Fixing a probation letter the AI matched to the wrong template","Re-sending a benefits form the AI issued with an old policy version"],
-  escalate:["Escalating a non-standard maternity-leave extension: no authority to approve it","Escalating a rehire contract the AI rules do not cover"],
-  buffer_idle:["Waiting for the next exception to drop into the queue"],
-  rule_tune:["Tuning the auto-issue rule for address-change confirmations after 3 false holds this week","Adding a condition so part-time contract variations can auto-issue safely"],
-  complex_case:["Owning a cross-border transfer end to end: contract, visa letter, payroll handover","Handling a return-from-long-leave case with a pay adjustment","Bringing a disputed termination letter to case review"],
-  coach_pair:["Peer coaching: walking a colleague through non-standard leave requests","Peer coaching: reviewing last week's exception decisions together"],
-  leaving:{"Before AI":"Resigned after a year of manual volume and overtime","Option A":"Resigned. Says the job became cleaning up after the bot","Option B":"Leaving for a promotion elsewhere"}
+    "Before AI":["Typing an employment letter by hand","Checking a leave form","Building an onboarding pack","Updating an address in the HR system","Drafting a salary-review letter","Filing contract changes"],
+    "Option A":["Clearing forms the AI flagged"],
+    "Option B":["Spot-checking the AI's letters"]},
+  exception_firefight:["Fixing a contract letter the AI rejected","Chasing a visa letter 2 days late","Fixing a letter on the wrong template","Re-sending an outdated benefits form"],
+  escalate:["Passing an unusual leave request up to the lead","Passing a rehire contract up to the lead"],
+  buffer_idle:["Waiting for the next exception"],
+  rule_tune:["Tuning which letters the AI may send","Teaching the AI a new letter type"],
+  complex_case:["Owning a cross-border transfer case","Handling a return-from-leave case","Reviewing a disputed case with the lead"],
+  coach_pair:["Coaching a colleague on tricky leave cases","Reviewing last week's decisions together"],
+  leaving:{"Before AI":"Burned out on manual work","Option A":"Bored of cleaning up after the AI","Option B":"Leaving for a promotion"}
 };
-const AI_TASK={"Option A":"At the AI console: pulling items it could not auto-issue","Option B":"At the AI console: checking how a rule change affected today's auto-issues"};
+const AI_TASK={"Option A":"Pulling items the AI couldn't send","Option B":"Checking the AI after a rule change"};
 const QUOTES={
   routine_desk:{"Before AI":"Every letter goes through my hands.","Option A":"I only see what the system spits out.","Option B":"Most of this is just checking now."},
   exception_firefight:"I only ever see the broken ones.",
@@ -699,8 +912,8 @@ const CHANGES={
   "Option B":["AI auto-issues standard letters and forms","You own exception cases end to end","You tune what the AI is allowed to auto-issue","Feedback on your own case outcomes and rule changes","Protected time for peer coaching"]
 };
 const LEAD_TEXT={
-  "Before AI":{task:"Running the weekly huddle and assigning cases",quote:"Busy, but everyone knows their cases.",label:"huddle"},
-  "Option A":{task:"Approving escalations that coordinators can't decide",quote:"Everything comes to me now.",label:"APPROVE"},
+  "Before AI":{task:"Running the weekly huddle",quote:"Busy, but everyone knows their cases.",label:"huddle"},
+  "Option A":{task:"Approving everyone's escalations",quote:"Everything comes to me now.",label:"APPROVE"},
   "Option B":{task:"Running case review and coaching",quote:"I review decisions, not paperwork.",label:"review"}
 };
 
@@ -729,6 +942,14 @@ function runParity(){
   ck("A cast: firefight present, no coach",cnt(cA,"exception_firefight")>0&&cnt(cA,"coach_pair")===0);
   for(const h of ["3m","12m"]){const c=buildCast({scores:s,profile:"Option B",horizon:h,settings:V1});
     ck("B@"+h+" meeting never escalates",c.agents.filter(a=>a.zone==="meet").every(a=>bubbleLabelFor(a,"meet","Option B")!=="ESCALATE"));}
+  // v2 sanity checks
+  const v=scoreAll(DEFAULTS_V2,V2),A=v["Option A"],B=v["Option B"],O=v["Before AI"];
+  ck("v2: AI raises throughput above manual baseline",A.Volume_12m>O.Volume_12m&&B.Volume_12m>O.Volume_12m);
+  ck("v2: Automate only leads throughput at 3 months",A.Volume_3m>B.Volume_3m);
+  ck("v2: Redesign leads throughput and quality at 12 months",B.Volume_12m>A.Volume_12m&&B.Quality_12m>A.Quality_12m);
+  ck("v2: Redesign has lower turnover risk",B.RetentionRisk_12m<A.RetentionRisk_12m);
+  ck("v2: turnover stays in a realistic 5–30% range",[A,B,O].every(x=>x.RetentionRisk_12m>=5&&x.RetentionRisk_12m<=30));
+  ck("v2: Redesign dips at 3 months (learning curve)",B.Volume_3m<B.Volume_12m);
   return checks;
 }
 
@@ -743,7 +964,7 @@ const KEYS=[
   ["SDT_Competence","Competence","Feels effective and growing","SDT"],
   ["SDT_Relatedness","Relatedness","Feels connected to peers","SDT"]
 ];
-const CONSTS=[
+const CONSTS_V1=[
   ["BASE_AI_CAPACITY","Base AI capacity","Volume floor from the AI layer"],
   ["VOL_COEF_LOW_AUT","Volume per point of low autonomy","Extra throughput when the job gives less discretion"],
   ["VOL_COEF_FB","Volume cost per feedback point","Time spent reviewing own results"],
@@ -756,19 +977,43 @@ const CONSTS=[
   ["VOL_12M_EROSION","12-month volume erosion","Volume lost per unit of retention risk"],
   ["LEAVE_DIVISOR","Door divisor","+N = round(retention risk ÷ this)"]
 ];
+const CONSTS_V2=[
+  ["BASE_AI_CAPACITY","AI throughput base","Throughput with the AI in place"],
+  ["MANUAL_CAPACITY","Manual throughput base","Throughput before AI (no automation)"],
+  ["VOL_COEF_LOW_AUT","Throughput per point of low autonomy","Extra output when the job gives less discretion"],
+  ["VOL_COEF_FB","Throughput cost per feedback point","Time spent reviewing own results"],
+  ["BASE_AI_ACCURACY","AI quality base","Quality with the AI in place"],
+  ["MANUAL_ACCURACY","Manual quality base","Quality before AI"],
+  ["QUALITY_SPAN","Human effect on quality","Kept small: job design links weakly to objective performance"],
+  ["W_Q_TI","Quality weight · Task identity","Quality weights should sum to 1"],
+  ["W_Q_FB","Quality weight · Feedback",""],
+  ["W_Q_COMP","Quality weight · Competence",""],
+  ["BASE_TURNOVER","Base yearly turnover","Typical yearly turnover at motivation 50 (0.15 = 15%)"],
+  ["TURNOVER_SENS","Turnover sensitivity to motivation","1 = turnover doubles at motivation 0, falls to 0 at 100"],
+  ["VACANCY_COST","Output lost per leaver","Share of a year's output lost to vacancy and ramp-up"],
+  ["QUAL_TURNOVER","Quality lost per % turnover","Knowledge walks out the door"],
+  ["DIP_VOL","3-month throughput dip per new skill","Learning curve when the job is redesigned"],
+  ["DIP_QUAL","3-month quality dip per new skill","Early mistakes while learning"],
+  ["TEAM","Team size","Coordinators in the team"]
+];
+let CONSTS=CONSTS_V2;
+const isV2=()=>state.settings.MODEL==="v2";
+const BASEM=()=>isV2()?V2:V1, DEFS=()=>isV2()?DEFAULTS_V2:DEFAULTS;
 const ROLE={routine_desk:{"Before AI":"Letter & form processor","Option A":"Exception queue clerk","Option B":"Quality spot-checker"},
   exception_firefight:"Exception firefighter",escalate:"Escalation runner",buffer_idle:"On standby",rule_tune:"AI rule tuner",
   complex_case:"Case owner",coach_pair:"Peer coach",leaving:"Leaving the team"};
 const ROLE_DESC={routine_desk:{"Before AI":"Handles each request from intake to signed letter.","Option A":"Clears forms the AI flagged as incomplete.","Option B":"Samples the letters the AI sent, checking for errors."},
   exception_firefight:"Gets only the cases the AI rejected, under SLA pressure.",escalate:"Can't decide unusual cases, so passes them to the Team Lead.",
   buffer_idle:"Waits for the next exception to arrive.",rule_tune:"Decides what the AI may send on its own.",complex_case:"Owns complex cases from start to finish.",coach_pair:"Coaches colleagues on judgment calls."};
-const state={profile:"Option B",edit:"Option B",horizon:"12m",view:"office",metric:"Volume",inputs:JSON.parse(JSON.stringify(DEFAULTS)),settings:{...V1},paused:false};
+const state={profile:"Option B",edit:"Option B",horizon:"12m",view:"office",metric:"Volume",inputs:JSON.parse(JSON.stringify(DEFAULTS_V2)),settings:{...V2},paused:false};
 const NICK={"Before AI":"Before AI","Option A":"Automate only","Option B":"Automate + redesign"};
 const SHORTN={"Before AI":"Before AI","Option A":"Automate only","Option B":"Redesign"};
 const COL={"Before AI":"var(--before-fill)","Option A":"var(--a-fill)","Option B":"var(--b-fill)"};
 const f1=x=>(Math.round(x*100)/100).toFixed(2), f0=x=>(Math.round(x*10)/10).toFixed(1);
 const $=id=>document.getElementById(id);
-const METRICS=[["Volume","Volume","letters & forms handled",false],["Quality","Quality","accuracy of what goes out",false],["Motivation","Motivation","from JCM + SDT",false],["Retention","Retention risk","lower is better",true]];
+const METRICS_V1=[["Volume","Volume","index",false],["Quality","Quality","index",false],["Motivation","Motivation","index",false],["Retention","Retention risk","index · lower is better",true]];
+const METRICS_V2=[["Volume","Throughput","index 0–100",false],["Quality","Quality","index 0–100",false],["Motivation","Motivation","index 0–100",false],["Retention","Turnover risk","% likely to leave",true]];
+let METRICS=METRICS_V2;
 const kName=k=>KEYS.find(x=>x[0]===k)[1];
 
 /* ================= Model tab build ================= */
@@ -790,15 +1035,16 @@ function buildConsts(){
   const host=$("consts");host.innerHTML="";
   for(const [k,label,hint] of CONSTS){
     const d=document.createElement("div");d.className="const";
-    d.innerHTML=`<label for="c-${k}">${label}</label><input id="c-${k}" type="number" step="any"><small>${hint||"&nbsp;"} · v1 ${V1[k]}</small>`;
+    d.innerHTML=`<label for="c-${k}">${label}</label><input id="c-${k}" type="number" step="any"><small>${hint||"&nbsp;"} · default ${BASEM()[k]}</small>`;
     host.appendChild(d);
-    d.querySelector("input").addEventListener("input",e=>{const v=parseFloat(e.target.value);if(Number.isFinite(v)&&!(k==="LEAVE_DIVISOR"&&v<=0)){state.settings[k]=v;update();}});
+    d.querySelector("input").addEventListener("input",e=>{const v=parseFloat(e.target.value);if(Number.isFinite(v)&&!((k==="LEAVE_DIVISOR"||k==="TEAM")&&v<=0)){state.settings[k]=v;update();}});
   }
 }
 function syncControls(){
-  document.querySelectorAll(".dcard").forEach(b=>b.setAttribute("aria-pressed",b.dataset.p===state.profile));
+  document.querySelectorAll(".dbtn").forEach(b=>b.setAttribute("aria-pressed",b.dataset.p===state.profile));
   document.querySelectorAll("#seg-edit button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.p===state.edit));
-  document.querySelectorAll("#seg-metric button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===state.metric));
+  document.querySelectorAll("#seg-metric button").forEach(b=>{b.setAttribute("aria-pressed",b.dataset.m===state.metric);const m=(isV2()?METRICS_V2:METRICS_V1).find(x=>x[0]===b.dataset.m);b.textContent=m[1];});
+  document.querySelectorAll("#seg-model button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===(isV2()?"v2":"v1")));
   document.querySelectorAll(".seg-h button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.h===state.horizon));
   document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===state.view));
   for(const v of ["office","dash","model"])$("view-"+v).hidden=state.view!==v;
@@ -809,38 +1055,52 @@ function syncControls(){
   $("w-jcm").value=state.settings.W_MOT_MPS;
 }
 const delta=(d,low,dec=1)=>{if(Math.abs(d)<0.05)return `<b>±0</b>`;const good=low?d<0:d>0;return `<b class="${good?"up":"dn"}">${d>0?"▲":"▼"}${Math.abs(d).toFixed(dec)}</b>`;};
-function leverFor(p,S,fw){
-  let best=[],bd=-1;const base=scoreProfile(p,S).Motivation;
-  for(const [k,,,f] of KEYS){if(f!==fw||p[k]>=7)continue;const d=scoreProfile({...p,[k]:Math.min(7,p[k]+1)},S).Motivation-base;
+function leverFor(p,S,fw,pp){const cx=ctxOf(state.inputs,pp||"Option B");
+  let best=[],bd=-1;const base=scoreProfile(p,S,cx).Motivation;
+  for(const [k,,,f] of KEYS){if(f!==fw||p[k]>=7)continue;const d=scoreProfile({...p,[k]:Math.min(7,p[k]+1)},S,cx).Motivation-base;
     if(d>bd+1e-9){bd=d;best=[k];}else if(Math.abs(d-bd)<1e-9)best.push(k);}
   return best.length?{keys:best,d:bd}:null;
 }
 
-function bestMove(p,S){let best=null;const base=scoreProfile(p,S).Motivation;
-  for(const [k] of KEYS){if(p[k]>=7)continue;const d=scoreProfile({...p,[k]:Math.min(7,p[k]+1)},S).Motivation-base;
-    if(!best||d>best.d+1e-9)best={keys:[k],d};else if(Math.abs(d-best.d)<1e-9)best.keys.push(k);}
+function bestMove(p,S,pp){const cx=ctxOf(state.inputs,pp);const b0=scoreProfile(p,S,cx);let best=null;
+  for(const [k] of KEYS){if(p[k]>=7)continue;const s1=scoreProfile({...p,[k]:Math.min(7,p[k]+1)},S,cx);const d=s1.Motivation-b0.Motivation,dr=s1.RetentionRisk_12m-b0.RetentionRisk_12m;
+    if(!best||d>best.d+1e-9)best={keys:[k],d,dr};else if(Math.abs(d-best.d)<1e-9)best.keys.push(k);}
   return best;}
+function rangeOf(pp,h,k){const S=state.settings,vals=[];
+  for(const sh of [-0.5,0.5]){const inp=JSON.parse(JSON.stringify(state.inputs));for(const [kk] of KEYS)inp[pp][kk]=Math.min(7,Math.max(1,inp[pp][kk]+sh));
+    vals.push(atH(scoreProfile(inp[pp],S,ctxOf(inp,pp)),h)[k]);}
+  return [Math.min(...vals),Math.max(...vals)];}
 const RM=matchMedia("(prefers-reduced-motion: reduce)").matches;
 function countUp(root){if(RM)return;root.querySelectorAll("[data-count]").forEach(el=>{const to=+el.dataset.count,pre=el.dataset.prefix||"",dec=+(el.dataset.dec||1);const from=+(el.dataset.from||0);const t0=performance.now();
   const step=now=>{const k=Math.min(1,(now-t0)/650);const e=1-Math.pow(1-k,3);el.textContent=pre+(from+(to-from)*e).toFixed(dec);if(k<1)requestAnimationFrame(step);};requestAnimationFrame(step);});}
 /* ================= Render ================= */
 function update(){
+  METRICS=isV2()?METRICS_V2:METRICS_V1;
   const S=state.settings, scores=scoreAll(state.inputs,S), prof=state.profile, h=state.horizon;
   const at=pp=>atH(scores[pp],h);
   const B0=at("Before AI"),A=at("Option A"),Bb=at("Option B");
 
   /* Office: performance panel */
-  $("pm-title").textContent=NICK[prof];
+
   const cur=at(prof);
+  const DESC={"Before AI":"No AI · each coordinator handles a request end to end",
+    "Option A":"AI sends standard letters · people get only what it rejects",
+    "Option B":"Same AI + people own cases, tune the AI's rules and coach each other"};
+  $("ddesc").textContent=DESC[prof];
+  $("pm-title").textContent=NICK[prof];
+  $("pm-sub").textContent=(h==="3m"?"3 months":"12 months")+" after rollout"+(prof==="Before AI"?" · baseline":" · vs Before AI");
   const prevPm=window._pmPrev||{};
+  const clamp=x=>Math.max(0,Math.min(100,x));
   $("pm").innerHTML=METRICS.map(([k,l,sub,low])=>{
-    const v=cur[k],b=B0[k];
-    const d=prof==="Before AI"?`<span>Baseline, before any AI</span>`:`<span>${delta(v-b,low)} vs Before AI</span>`;
-    return `<div class="pm-row"><span class="l">${l}<small>${sub}</small></span><span class="v mono" style="color:${COL[prof]}" data-count="${v}" data-from="${prevPm[k]??v}">${v.toFixed(1)}</span>
-      <div class="pm-track"><i style="width:${Math.max(0,Math.min(100,v))}%;background:${COL[prof]}"></i>${prof==="Before AI"?"":`<s style="left:${Math.max(0,Math.min(100,b))}%" title="Before AI"></s>`}</div>
-      <div class="d">${d}</div></div>`;}).join("");
+    const v=cur[k],b=B0[k],d=v-b,pct=b?d/b*100:0,good=low?d<0:d>0,flat=Math.abs(d)<0.05;
+    const chg=prof==="Before AI"?`<div class="pmr-chg base">Baseline</div>`:
+      flat?`<div class="pmr-chg base">No change</div>`:`<div class="pmr-chg ${good?"good":"bad"}">${d>0?"▲":"▼"} ${Math.abs(pct).toFixed(0)}% <span>${good?"better":"worse"} than before</span></div>`;
+    const [rl,rh]=rangeOf(prof,h,k);const pc=isV2()&&k==="Retention";
+    return `<div class="pmr"><div class="pmr-top"><span class="l">${l}${low?"<small>lower is better</small>":""}</span><span class="v"><span data-count="${v}" data-from="${prevPm[k]??v}">${v.toFixed(1)}</span>${pc?"<small>%</small>":""}</span></div>
+      <div class="bt1"><b class="band" style="left:${clamp(rl)}%;width:${Math.max(.5,clamp(rh)-clamp(rl))}%" title="Likely range ${rl.toFixed(1)}–${rh.toFixed(1)}"></b><i style="width:${clamp(v)}%;background:${COL[prof]}"></i>${prof==="Before AI"?"":`<s style="left:calc(${clamp(b)}% - 1.5px)"></s>`}</div>${chg}</div>`;}).join("");
   window._pmPrev=Object.fromEntries(METRICS.map(([k])=>[k,cur[k]]));
   countUp($("pm"));
+  document.querySelector(".pm-key").hidden=prof==="Before AI";
   const wins=(k,low)=>low?(Bb[k]<A[k]?"B":"A"):(Bb[k]>A[k]?"B":"A");
   const aW=METRICS.filter(([k,,,low])=>wins(k,low)==="A").map(m=>m[1].toLowerCase()), bW=METRICS.filter(([k,,,low])=>wins(k,low)==="B").map(m=>m[1].toLowerCase());
   $("verdict").innerHTML=`<strong>At ${h==="3m"?"3 months":"12 months"}</strong>`+
@@ -881,7 +1141,7 @@ function update(){
   $("slope").innerHTML=svg+"</svg>";
   const a3v=vals[1].v3,b3v=vals[2].v3,a12v=vals[1].v12,b12v=vals[2].v12;
   const lead3=mlow?(a3v<b3v?"A":"B"):(a3v>b3v?"A":"B"),lead12=mlow?(a12v<b12v?"A":"B"):(a12v>b12v?"A":"B");
-  $("slope-note").textContent=mk==="Quality"||mk==="Motivation"?`${mlabel} is set by the job design, so it stays the same over time in this model.`:
+  $("slope-note").textContent=mk==="Motivation"||(mk==="Quality"&&!isV2())?`${mlabel} is set by the job design, so it stays the same over time in this model.`:
     (lead3!==lead12?`The lines cross: automate only leads on ${mlabel.toLowerCase()} at 3 months, then falls behind as people leave.`:`Redesign leads on ${mlabel.toLowerCase()} at both points, and the gap ${Math.abs(b12v-a12v)>Math.abs(b3v-a3v)?"widens":"holds"} by 12 months.`);
 
   /* Dashboard: dumbbell of the 8 characteristics */
@@ -902,12 +1162,12 @@ function update(){
   /* Dashboard: diagnosis (A and B) */
   $("diag").innerHTML=["Option A","Option B"].map(pp=>{
     const p=state.inputs[pp];
-    const best=bestMove(p,S);
+    const best=bestMove(p,S,pp);
     const strong=KEYS.map(x=>x[0]).filter(k=>p[k]>=5).sort((x,y)=>p[y]-p[x]).slice(0,3);
     const weak=KEYS.map(x=>x[0]).filter(k=>p[k]<5).sort((x,y)=>p[x]-p[y]).slice(0,3);
     const li=k=>`<li><span>${kName(k)}</span><b>${p[k]}</b></li>`;
     return `<div class="card dg ${pp==="Option B"?"b":""}"><h3>${NICK[pp]}</h3>
-      <div class="move"><small>Best next move</small>${best?`Raise <b>${best.keys.map(kName).join(" or ")}</b> by 1 point → motivation <b class="up">+${best.d.toFixed(1)}</b>, retention risk <b class="up">−${best.d.toFixed(1)}</b>`:"Every characteristic is already at 7."}</div>
+      <div class="move"><small>Best next move</small>${best?`Raise <b>${best.keys.map(kName).join(" or ")}</b> by 1 point → motivation <b class="up">+${best.d.toFixed(1)}</b>${isV2()?`, turnover risk <b class="up">${best.dr.toFixed(1)} pts</b>`:`, retention risk <b class="up">−${best.d.toFixed(1)}</b>`}`:"Every characteristic is already at 7."}</div>
       <div class="cols"><div><span class="lab ok">Working well</span><ul>${strong.length?strong.map(li).join(""):'<li class="muted">Nothing at 5 or above</li>'}</ul></div>
       <div><span class="lab bad">Fix first</span><ul>${weak.length?weak.map(li).join(""):'<li class="muted">Nothing below 5</li>'}</ul></div></div></div>`;}).join("");
 
@@ -925,44 +1185,55 @@ function update(){
 
   /* Model tab */
   const ep=state.edit,p=state.inputs[ep],r=scores[ep];
-  for(const [k] of KEYS){const el=$("v-"+k);el.textContent=(+p[k]).toFixed(1).replace(".0","");el.classList.toggle("edited",p[k]!==DEFAULTS[ep][k]);}
-  for(const [k] of CONSTS)$("c-"+k).classList.toggle("edited",S[k]!==V1[k]);
+  for(const [k] of KEYS){const el=$("v-"+k);el.textContent=(+p[k]).toFixed(1).replace(".0","");el.classList.toggle("edited",p[k]!==DEFS()[ep][k]);}
+  for(const [k] of CONSTS)$("c-"+k).classList.toggle("edited",S[k]!==BASEM()[k]);
   const an=$("aut-note");
-  if(p.Autonomy===p.SDT_Autonomy){an.hidden=false;an.textContent=`Job autonomy and felt autonomy are both ${p.Autonomy}, so autonomy counts twice (in MPS and in SDT). That is the v1 default. With real data, measure each with its own scale.`;}else an.hidden=true;
+  if(p.Autonomy===p.SDT_Autonomy){an.hidden=false;an.textContent=`Job autonomy and felt autonomy are both ${p.Autonomy}, so autonomy counts twice (in MPS and in SDT). With real data, measure each with its own scale.`;}else an.hidden=true;
   $("w-jcm-v").textContent=Math.round(S.W_MOT_MPS*100)+"%";$("w-a").textContent=S.W_MOT_MPS.toFixed(2);$("w-b").textContent=S.W_MOT_SDT.toFixed(2);
-  const setEdited=Object.keys(V1).some(k=>Math.abs(S[k]-V1[k])>1e-12);
-  const inEdited=PROFILES.some(pp=>KEYS.some(([k])=>state.inputs[pp][k]!==DEFAULTS[pp][k]));
-  const ps=$("pill-settings");ps.classList.toggle("custom",setEdited);ps.lastElementChild.textContent=setEdited?"Model: custom settings":"Model: v1 settings";
-  const pi=$("pill-inputs");pi.classList.toggle("custom",inEdited);pi.lastElementChild.textContent=inEdited?"Inputs: edited":"Inputs: v1 defaults";
+  const setEdited=Object.keys(BASEM()).some(k=>k!=="MODEL"&&Math.abs(S[k]-BASEM()[k])>1e-12);
+  const inEdited=PROFILES.some(pp=>KEYS.some(([k])=>state.inputs[pp][k]!==DEFS()[pp][k]));
+  const ps=$("pill-settings");ps.classList.toggle("custom",setEdited);ps.lastElementChild.textContent=(isV2()?"Model v2":"Model v1 (original)")+(setEdited?" · custom settings":"");
+  const pi=$("pill-inputs");pi.classList.toggle("custom",inEdited);pi.lastElementChild.textContent=inEdited?"Inputs: edited":"Inputs: defaults";
   $("calc-title").textContent=SHORTN[ep]+", step by step";
-  $("calc").innerHTML=[
+  const calcCommon=[
     `<div class="r"><span class="k">Core JCM</span> = (SV ${p.SV} + TI ${p.TI} + TS ${p.TS}) / 3 = <b>${f1(r.coreJcm)}</b></div>`,
     `<div class="r"><span class="k">MPS</span> = ${f1(r.coreJcm)} × Autonomy ${p.Autonomy} × Feedback ${p.Feedback} = <b>${f0(r.MPS)}</b> <span class="k">/ 343 = ${f1(r.MPS_norm)}</span></div>`,
     `<div class="r"><span class="k">SDT</span> = (${p.SDT_Autonomy} + ${p.SDT_Competence} + ${p.SDT_Relatedness}) / 3 = <b>${f1(r.SDT)}</b> <span class="k">/ 7 = ${f1(r.SDT_norm)}</span></div>`,
-    `<div class="r"><span class="k">Motivation</span> = 100 × (${S.W_MOT_MPS.toFixed(2)} × ${f1(r.MPS_norm)} + ${S.W_MOT_SDT.toFixed(2)} × ${f1(r.SDT_norm)}) = <b>${f1(r.Motivation)}</b></div>`,
+    `<div class="r"><span class="k">Motivation</span> = 100 × (${S.W_MOT_MPS.toFixed(2)} × ${f1(r.MPS_norm)} + ${S.W_MOT_SDT.toFixed(2)} × ${f1(r.SDT_norm)}) = <b>${f1(r.Motivation)}</b></div>`];
+  $("calc").innerHTML=(isV2()?calcCommon.concat([
+    `<div class="r"><span class="k">Turnover (12m)</span> = ${S.BASE_TURNOVER} × (1 + ${S.TURNOVER_SENS} × (50 − ${f1(r.Motivation)})/50) = <b>${(r.rate*100).toFixed(1)}%</b> <span class="k">≈ ${r.expectedLeavers.toFixed(1)} of ${S.TEAM} people</span></div>`,
+    `<div class="r"><span class="k">Throughput</span> = ${r.hasAI?S.BASE_AI_CAPACITY+" (AI)":S.MANUAL_CAPACITY+" (manual)"} + ${S.VOL_COEF_LOW_AUT} × (7 − ${p.Autonomy}) − ${S.VOL_COEF_FB} × ${p.Feedback} = <b>${f1(r.Volume)}</b></div>`,
+    `<div class="r"><span class="k">New skills to learn</span> = <b>${r.learn}</b> points <span class="k">→ 3m dip ${(S.DIP_VOL*r.learn*100).toFixed(0)}% throughput, −${(S.DIP_QUAL*r.learn).toFixed(1)} quality</span></div>`,
+    `<div class="r"><span class="k">Throughput 12m</span> = ${f1(r.Volume)} × (1 − ${S.VACANCY_COST} × ${(r.rate*100).toFixed(1)}%) = <b>${f1(r.Volume_12m)}</b></div>`,
+    `<div class="r"><span class="k">Quality</span> = ${r.hasAI?S.BASE_AI_ACCURACY+" (AI)":S.MANUAL_ACCURACY+" (manual)"} + ${S.QUALITY_SPAN} × (${S.W_Q_TI}×${p.TI}/7 + ${S.W_Q_FB}×${p.Feedback}/7 + ${S.W_Q_COMP}×${p.SDT_Competence}/7) = <b>${f1(r.Quality)}</b> <span class="k">· 12m ${f1(r.Quality_12m)}</span></div>`
+  ]):calcCommon.concat([
     `<div class="r"><span class="k">Retention risk</span> = 100 − ${f1(r.Motivation)} = <b>${f1(r.Retention)}</b> <span class="k">· 3m × ${S.RR_3M_MULT} = ${f1(r.RetentionRisk_3m)}</span></div>`,
     `<div class="r"><span class="k">Volume</span> = ${S.BASE_AI_CAPACITY} + ${S.VOL_COEF_LOW_AUT} × (7 − ${p.Autonomy}) − ${S.VOL_COEF_FB} × ${p.Feedback} = <b>${f1(r.Volume)}</b></div>`,
     `<div class="r"><span class="k">Volume 12m</span> = ${f1(r.Volume)} × (1 − ${S.VOL_12M_EROSION} × ${f1(r.Retention)}/100) = <b>${f1(r.Volume_12m)}</b></div>`,
-    `<div class="r"><span class="k">Quality</span> = ${S.BASE_AI_ACCURACY} + ${S.QUALITY_SPAN} × (${S.W_Q_TI}×${p.TI}/7 + ${S.W_Q_FB}×${p.Feedback}/7 + ${S.W_Q_COMP}×${p.SDT_Competence}/7) = <b>${f1(r.Quality)}</b></div>`
-  ].join("");
+    `<div class="r"><span class="k">Quality</span> = ${S.BASE_AI_ACCURACY} + ${S.QUALITY_SPAN} × (${S.W_Q_TI}×${p.TI}/7 + ${S.W_Q_FB}×${p.Feedback}/7 + ${S.W_Q_COMP}×${p.SDT_Competence}/7) = <b>${f1(r.Quality)}</b></div>`])).join("");
 
   /* Scene */
   const cast=buildCast({scores,profile:prof,horizon:h,settings:S});
-  $("door-n").textContent="+"+cast.leaveCount+" left work";
-  $("door-cap").textContent=`turnover pressure from retention risk ${cur.Retention.toFixed(1)} · illustrative, not a headcount`;
+  if(isV2()){$("door-n").textContent=`≈ ${cast.leaveCount.toFixed(1)} of ${S.TEAM} may leave`;
+    $("door-cap").textContent=`expected within ${h==="3m"?"3":"12"} months · turnover risk ${cur.Retention.toFixed(0)}%`;}
+  else{$("door-n").textContent="+"+cast.leaveCount+" left work";
+    $("door-cap").textContent=`turnover pressure from retention risk ${cur.Retention.toFixed(1)} · illustrative, not a headcount`;}
   if(window.Office)Office.setCast(cast,prof,h,scores[prof],scores);
 }
 
 /* ================= Events ================= */
-document.querySelectorAll(".dcard").forEach(b=>b.addEventListener("click",()=>{state.profile=b.dataset.p;state.edit=b.dataset.p;syncControls();update();}));
+document.querySelectorAll(".dbtn").forEach(b=>b.addEventListener("click",()=>{state.profile=b.dataset.p;state.edit=b.dataset.p;syncControls();update();}));
+document.addEventListener("keydown",e=>{if(!$("intro").hidden||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.metaKey||e.ctrlKey||e.altKey)return;const i=["1","2","3"].indexOf(e.key);if(i>=0&&state.view==="office"){state.profile=state.edit=PROFILES[i];syncControls();update();}});
 document.querySelectorAll("#seg-metric button").forEach(b=>b.addEventListener("click",()=>{state.metric=b.dataset.m;syncControls();update();}));
 document.querySelectorAll("#seg-edit button").forEach(b=>b.addEventListener("click",()=>{state.edit=b.dataset.p;syncControls();update();}));
 document.querySelectorAll(".seg-h button").forEach(b=>b.addEventListener("click",()=>{state.horizon=b.dataset.h;syncControls();update();}));
 function goView(v){state.view=v;syncControls();window.scrollTo({top:0,behavior:"smooth"});if(v==="office")window.dispatchEvent(new Event("resize"));}
 document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>goView(b.dataset.view)));
 document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>goView(b.dataset.goto)));
-$("btn-reset-prof").addEventListener("click",()=>{state.inputs[state.edit]={...DEFAULTS[state.edit]};syncControls();update();});
-$("btn-reset-set").addEventListener("click",()=>{state.settings={...V1};syncControls();update();});
+$("btn-reset-prof").addEventListener("click",()=>{state.inputs[state.edit]={...DEFS()[state.edit]};syncControls();update();});
+$("btn-reset-set").addEventListener("click",()=>{state.settings={...BASEM()};syncControls();update();});
+function setModel(m){state.settings={...(m==="v2"?V2:V1)};state.inputs=JSON.parse(JSON.stringify(m==="v2"?DEFAULTS_V2:DEFAULTS));CONSTS=m==="v2"?CONSTS_V2:CONSTS_V1;buildConsts();syncControls();update();}
+document.querySelectorAll("#seg-model button").forEach(b=>b.addEventListener("click",()=>setModel(b.dataset.m)));
 $("w-jcm").addEventListener("input",e=>{const w=parseFloat(e.target.value);state.settings.W_MOT_MPS=w;state.settings.W_MOT_SDT=Math.round((1-w)*100)/100;update();});
 $("btn-copy").addEventListener("click",()=>{
   const json=JSON.stringify({version:"wds-vnext-1",profile:state.profile,horizon:state.horizon,settings:state.settings,inputs:state.inputs},null,1);
@@ -975,7 +1246,7 @@ $("btn-load").addEventListener("click",()=>{
     const o=JSON.parse($("scn-in").value);
     if(!o||!o.inputs||!o.settings)throw new Error("missing inputs or settings");
     for(const pp of PROFILES)for(const [k] of KEYS){const v=+o.inputs?.[pp]?.[k];if(!(v>=1&&v<=7))throw new Error(`${pp} ${k} must be between 1 and 7`);}
-    const ns={...V1};for(const k of Object.keys(V1)){if(o.settings[k]!==undefined){const v=+o.settings[k];if(!Number.isFinite(v))throw new Error(k+" is not a number");ns[k]=v;}}
+    const BM=o.settings.MODEL==="v2"?V2:V1;const ns={...BM};CONSTS=BM===V2?CONSTS_V2:CONSTS_V1;buildConsts();for(const k of Object.keys(BM)){if(k==="MODEL")continue;if(o.settings[k]!==undefined){const v=+o.settings[k];if(!Number.isFinite(v))throw new Error(k+" is not a number");ns[k]=v;}}
     if(ns.LEAVE_DIVISOR<=0)throw new Error("LEAVE_DIVISOR must be above 0");
     state.settings=ns;
     for(const pp of PROFILES){state.inputs[pp]={};for(const [k] of KEYS)state.inputs[pp][k]=+o.inputs[pp][k];}
@@ -990,7 +1261,7 @@ const INTRO=[
   `<h2 id="intro-title">Hi, I'm Mei!</h2><p>I lead the HR Operations team here. Welcome to the <b>Work Design Simulator</b>, a small world where you can test how AI changes my team's jobs.</p>`,
   `<h2>What my team does</h2><p>We handle employee letters and forms: onboarding packs, contract changes, leave and benefits forms. Now an <b>AI sends the standard ones automatically</b>.</p>`,
   `<h2>The real question</h2><p>The AI is the same either way. So what should my team's jobs become?</p><div class="opt"><div class="oa"><b>Automate only</b>They just handle whatever the AI can't.</div><div class="ob"><b>Automate + redesign</b>They own the tricky cases, tune the AI and coach each other.</div></div>`,
-  `<h2>How we measure it</h2><p>Two psychology frameworks score each job:</p><div class="opt"><div class="of"><b>Job Characteristics Model</b>What the job offers</div><div class="of"><b>Self-Determination Theory</b>How people feel</div></div><p>Then we predict <b>volume, quality, motivation and retention risk</b> at 3 and 12 months.</p>`,
+  `<h2>How we measure it</h2><p>Two psychology frameworks score each job:</p><div class="opt"><div class="of"><b>Job Characteristics Model</b>What the job offers</div><div class="of"><b>Self-Determination Theory</b>How people feel</div></div><p>Then we predict <b>throughput, quality, motivation and turnover risk</b> at 3 and 12 months.</p>`,
   `<h2>Your turn</h2><p>Switch between the three designs, <b>tap anyone on my team</b> to see how their job changed, and open the <b>Dashboard</b> for the full comparison.</p>`
 ];
 let introStep=0;
@@ -1007,7 +1278,7 @@ $("intro-back").addEventListener("click",()=>{if(introStep>0){introStep--;render
 $("intro-skip").addEventListener("click",closeIntro);
 $("btn-intro").addEventListener("click",openIntro);
 document.addEventListener("keydown",e=>{if($("intro").hidden)return;if(e.key==="Escape")closeIntro();if(e.key==="ArrowRight")$("intro-next").click();if(e.key==="ArrowLeft")$("intro-back").click();});
-new MutationObserver(()=>{if(!$("pcard").hidden)$("tap-hint").style.opacity=0;}).observe($("pcard"),{attributes:true,attributeFilter:["hidden"]});
+new MutationObserver(()=>{$("tap-hint").style.opacity=$("pcard").hidden?1:0;}).observe($("pcard"),{attributes:true,attributeFilter:["hidden"]});
 /* ================= 3D office ================= */
 const Office=(function(){
   const host=$("scene"), overlay=$("overlay");
@@ -1272,7 +1543,7 @@ const Office=(function(){
       else{const st=Math.min(dist,spd*dt);a.pos.x+=dx/dist*st;a.pos.z+=dz/dist*st;a.face=Math.atan2(dx,dz);}
     }
     if(a.state==="fade"){a.fade-=dt*1.2;if(a.fade<=0){a.fade=0;a.state="gone";a.timer=5+Math.random()*3;
-        const d=$("door");d.classList.remove("bump");void d.offsetWidth;d.classList.add("bump");}}
+}}
     if(a.state==="gone"){a.timer-=dt;if(a.timer<=0){a.pos.set(a.home.x,0,a.home.z);a.cur=a.home;a.state="fadein";}}
     if(a.state==="fadein"){a.fade+=dt*1.5;if(a.fade>=1){a.fade=1;a.state="dwell";a.timer=dwellTime(a);}}
     const walking=a.state==="walk"||a.state==="fade";
@@ -1321,8 +1592,14 @@ const Office=(function(){
     a.bubY=(y+(seat?1.95:1.85))*1;
   }
   function project(v){tmpV.copy(v).project(cam);return {x:(tmpV.x+1)/2*host.clientWidth,y:(1-tmpV.y)/2*host.clientHeight};}
-  function resize(){const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);const asp=w/h;const vh=asp<1.2?20:15;
-    cam.left=-vh*asp/2;cam.right=vh*asp/2;cam.top=vh/2;cam.bottom=-vh/2;cam.updateProjectionMatrix();}
+  // Fit the whole office (floor + walls) into the view at the home angle
+  const fitPts=[];for(const x of [-11,11])for(const z of [-8,8])for(const y of [0,3.1])fitPts.push(new THREE.Vector3(x,y,z));
+  const fitCam=new THREE.OrthographicCamera();fitCam.position.copy(HOME_POS);fitCam.lookAt(TARGET);fitCam.updateMatrixWorld();
+  let mnx=1e9,mxx=-1e9,mny=1e9,mxy=-1e9;for(const p of fitPts){const q=p.clone().applyMatrix4(fitCam.matrixWorldInverse);mnx=Math.min(mnx,q.x);mxx=Math.max(mxx,q.x);mny=Math.min(mny,q.y);mxy=Math.max(mxy,q.y);}
+  const cxF=(mnx+mxx)/2,cyF=(mny+mxy)/2,hwF=(mxx-mnx)/2,hhF=(mxy-mny)/2;
+  function resize(){const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);const asp=w/h;
+    const halfH=Math.max(hhF,hwF/asp)*1.05+0.4,halfW=halfH*asp;
+    cam.left=cxF-halfW;cam.right=cxF+halfW;cam.top=cyF+halfH+0.6;cam.bottom=cyF-halfH+0.6;cam.updateProjectionMatrix();}
   new ResizeObserver(resize).observe(host);resize();
 
   /* ---------- Tap a person ---------- */
@@ -1366,7 +1643,7 @@ const Office=(function(){
   function perfRows(P,showDelta){
     if(!lastScores)return "";
     const o=atH(lastScores[P],horizon),b=atH(lastScores["Before AI"],horizon);
-    const rows=[["Volume","Volume",false],["Quality","Quality",false],["Motivation","Motivation",false],["Retention","Retention risk",true]];
+    const rows=METRICS.map(m=>[m[0],m[1],m[3]]);
     return `<div class="pc-perf">`+rows.map(([k,l,low])=>{
       const d=o[k]-b[k];let ds="";
       if(showDelta&&Math.abs(d)>=0.05){const good=low?d<0:d>0;ds=`<em class="${good?"up":"dn"}">${d>0?"▲":"▼"}${Math.abs(d).toFixed(1)}</em>`;}
@@ -1378,38 +1655,36 @@ const Office=(function(){
     if(!a){card.hidden=true;return;}
     card.hidden=false;
     const hx="#"+a.g.userData.shirt.toString(16).padStart(6,"0");
-    const first=a.person.name.split(" ")[0];
-    let h=`<div class="pc-head"><span class="pc-av" style="background:${hx}"></span><div class="pc-id"><b>${a.person.name}</b><small>${a.lead?"HR Ops Team Lead":"HR Ops Coordinator · "+a.person.yrs+" yr"+(a.person.yrs>1?"s":"")+" in the team"}</small></div></div>`;
     if(a.lead){
-      h+=`<div class="pc-role"><span class="eyebrow">Doing now</span><p data-k="task">${taskFor(a)}</p></div><p class="pc-q">“${LEAD_TEXT[profile].quote}”</p><p class="pc-note">Mei leads the team. Her job is context only and is not scored.</p>`;
-      card.querySelector(".pc-body").innerHTML=h;return;
-    }
+      card.querySelector(".pc-body").innerHTML=`<div class="pc-head"><span class="pc-av" style="background:${hx}"></span><div class="pc-id"><b>${a.person.name}</b><small>HR Ops Team Lead</small></div></div>
+        <div class="pc-blk"><span class="pc-lab">Doing now</span><p class="pc-now" data-k="task">${taskFor(a)}</p></div>
+        <p class="pc-say">${LEAD_TEXT[profile].quote}</p><p class="pc-note">Context only, not scored.</p>`;return;}
     const pre=profile==="Before AI";
     const tab=pre?"before":cardTab;
-    const after=profile==="Option A"?"Automate only":"Redesign";
-    if(!pre)h+=`<div class="pc-tabs" role="tablist"><button type="button" role="tab" data-tab="before" aria-selected="${tab==="before"}">Before AI</button><button type="button" role="tab" data-tab="after" aria-selected="${tab==="after"}" class="${profile==="Option A"?"ta":"tb"}">After AI</button></div>`;
     const P=tab==="before"?"Before AI":profile;
     const status=tab==="before"?"routine_desk":a.spec.status;
     const cls=P==="Option A"?"ra":P==="Option B"?"rb":"r0";
+    let h=`<div class="pc-head"><span class="pc-av" style="background:${hx}"></span><div class="pc-id"><b>${a.person.name}</b><small>HR Ops Coordinator · ${a.person.yrs} yr${a.person.yrs>1?"s":""}</small></div></div>`;
+    if(!pre)h+=`<div class="pc-tabs" role="tablist"><button type="button" role="tab" data-tab="before" aria-selected="${tab==="before"}">Before AI</button><button type="button" role="tab" data-tab="after" aria-selected="${tab==="after"}" class="${profile==="Option A"?"ta":"tb"}">After AI</button></div>`;
     const task=tab==="before"?TASKS.routine_desk["Before AI"][a.idx%TASKS.routine_desk["Before AI"].length]:taskFor(a);
     const quote=tab==="before"?QUOTES.routine_desk["Before AI"]:quoteFor(a);
-    h+=`<div class="pc-role ${cls}"><span class="eyebrow">Role</span><b>${roleOf(status,P)}</b><small>${roleDesc(status,P)}</small></div>`;
-    h+=`<div class="pc-sec"><span class="eyebrow">${tab==="before"?"A typical task":"Doing now"}</span><p ${tab==="before"?"":'data-k="task"'}>${task}</p><p class="pc-q">“${quote}”</p></div>`;
-    const pin=state.inputs[profile],pb=state.inputs["Before AI"];
-    const ks=Object.keys(SHORT);
-    if(pre){
-      const top=ks.slice().sort((x,y)=>pb[y]-pb[x]).slice(0,3);
-      h+=`<div class="pc-sec"><span class="eyebrow">Strongest parts of the job</span><div class="pc-chg">${top.map(k=>`<div><span>${SHORT[k]}</span><b class="mono">${pb[k]}</b><i></i></div>`).join("")}</div></div>`;
-    }else{
+    h+=`<div class="pc-role ${cls}"><span class="pc-lab">Role</span><b>${roleOf(status,P)}</b><small>${roleDesc(status,P)}</small></div>`;
+    h+=`<div class="pc-blk"><span class="pc-lab">Doing now</span><p class="pc-now" ${tab==="before"?"":'data-k="task"'}>${task}</p></div>`;
+    h+=`<div class="pc-blk"><span class="pc-lab">What they think</span><p class="pc-say">${quote}</p></div>`;
+    if(!pre){
+      const pin=state.inputs[profile],pb=state.inputs["Before AI"],ks=Object.keys(SHORT);
       const top=ks.slice().sort((x,y)=>Math.abs(pin[y]-pb[y])-Math.abs(pin[x]-pb[x])).slice(0,3);
-      const rising=top.filter(k=>pin[k]>pb[k]).length>=2;
-      if(tab==="after")h+=`<div class="pc-sec"><span class="eyebrow">${rising?"Biggest gains":"Biggest drops"} in the job</span><div class="pc-chg">${top.map(k=>{const d=pin[k]-pb[k];
-        return `<div><span>${SHORT[k]}</span><b class="mono">${pb[k]} → ${pin[k]}</b><em class="${d>0?"up":d<0?"dn":""}">${d>0?"▲"+d:d<0?"▼"+Math.abs(d):"="}</em></div>`;}).join("")}</div></div>`;
-      else h+=`<div class="pc-sec"><span class="eyebrow">The same 3 dimensions before AI</span><div class="pc-chg">${top.map(k=>`<div><span>${SHORT[k]}</span><b class="mono">${pb[k]}</b><i></i></div>`).join("")}</div></div>`;
-    }
-    h+=`<div class="pc-sec"><span class="eyebrow">Performance at ${horizon==="3m"?"3 months":"12 months"}${tab==="after"&&!pre?" · vs Before AI":""}</span>${perfRows(P,tab==="after"&&!pre)}</div>`;
-    if(pre)h+=`<p class="pc-note">Choose Automate only or Redesign above to see how ${first}'s job changes.</p>`;
-    else h+=`<p class="pc-note">Scores are for the job design, so everyone in this design shares them.</p>`;
+      if(tab==="after"){
+        h+=`<div class="pc-blk"><span class="pc-lab">Job: biggest changes <i>score out of 7</i></span><div class="pc-list">${top.map(k=>{const d=pin[k]-pb[k];
+          return `<div><span>${SHORT[k]}</span><span class="pc-from">${pb[k]}</span><span class="pc-arr ${d>0?"up":"dn"}">→</span><b class="${d>0?"up":"dn"}">${pin[k]}</b></div>`;}).join("")}</div></div>`;
+        if(lastScores){const o=atH(lastScores[P],horizon),b=atH(lastScores["Before AI"],horizon);
+          const rows=METRICS.map(m=>[m[0],m[1],m[3]]);
+          h+=`<div class="pc-blk"><span class="pc-lab">Team performance vs Before AI</span><div class="pc-list perf">${rows.map(([k,l,low])=>{const d=o[k]-b[k],pct=b[k]?d/b[k]*100:0,good=low?d<0:d>0,flat=Math.abs(d)<.05;
+            return `<div><span>${l}</span><b class="${flat?"":good?"up":"dn"}">${flat?"no change":(d>0?"▲ ":"▼ ")+Math.abs(pct).toFixed(0)+"%"}</b><em>${flat?"":good?"better":"worse"}</em></div>`;}).join("")}</div></div>`;}
+      }else{
+        h+=`<div class="pc-blk"><span class="pc-lab">Job scores before AI <i>out of 7</i></span><div class="pc-list">${top.map(k=>`<div><span>${SHORT[k]}</span><b>${pb[k]}</b></div>`).join("")}</div></div>`;
+      }
+    }else h+=`<p class="pc-note">Switch to Automate only or Redesign to see what changes.</p>`;
     card.querySelector(".pc-body").innerHTML=h;
   }
   let cardTick=0;
@@ -1459,7 +1734,7 @@ window.Office=Office;
 buildSliders();buildConsts();syncControls();update();
 (function(){const checks=runParity();const pass=checks.filter(c=>c.ok).length;const el=$("pill-parity");
   el.classList.toggle("fail",pass<checks.length);
-  el.lastElementChild.textContent=pass===checks.length?`v1 parity: ${pass}/${checks.length} checks pass`:`v1 parity: ${pass}/${checks.length} pass`;
+  el.lastElementChild.textContent=pass===checks.length?`Model checks: ${pass}/${checks.length} pass (v1 parity + v2 sanity)`:`Model checks: ${pass}/${checks.length} pass`;
   el.title=checks.map(c=>(c.ok?"✓ ":"✗ ")+c.name).join("\n");})();
 /* Intro opens only from the "How it works" button, never on load */
 </script>
