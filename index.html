@@ -1,0 +1,1467 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Work Design Simulator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: header → tab bar (Office · Dashboard · Model) → Office = design picker + 3D stage beside performance panel; intro dialogue overlays on first visit */
+:root{
+  --bg:#F2F5F8; --surface:#FFFFFF; --sunk:#E9EEF3; --ink:#152030; --muted:#566377; --line:#D6DEE7;
+  --stage:#D9E2EB;
+  --a:#C2410C; --a-fill:#F59E0B; --a-soft:#FDEBD3;
+  --b:#1D4ED8; --b-fill:#3B82F6; --b-soft:#DCE7FC;
+  --before:#5F6E82; --before-fill:#94A3B8; --before-soft:#E6EBF1;
+  --lead:#0F766E; --good:#15803D; --bad:#DC2626; --warn:#B45309;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0E131A; --surface:#151C26; --sunk:#1B2430; --ink:#E5EAF1; --muted:#9AA7B8; --line:#283342; --stage:#18212C;
+  --a:#FB923C; --a-soft:#3A2614; --b:#7AA7FF; --b-soft:#162540; --before:#A3B0C2; --before-fill:#64748B; --before-soft:#222C38;
+  --lead:#2DD4BF; --good:#4ADE80; --bad:#F87171; --warn:#FBBF24; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0E131A; --surface:#151C26; --sunk:#1B2430; --ink:#E5EAF1; --muted:#9AA7B8; --line:#283342; --stage:#18212C;
+  --a:#FB923C; --a-soft:#3A2614; --b:#7AA7FF; --b-soft:#162540; --before:#A3B0C2; --before-fill:#64748B; --before-soft:#222C38;
+  --lead:#2DD4BF; --good:#4ADE80; --bad:#F87171; --warn:#FBBF24; color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:18px 48px}
+.wrap{max-width:1360px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(1.45rem,1.1rem + 1.3vw,2rem);font-weight:700}
+h2{font-size:1.1rem;font-weight:600}
+h3{font-size:.95rem;font-weight:600}
+p{margin:0}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.eyebrow{font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--b-fill);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+
+/* Header + tabs */
+.top{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;justify-content:space-between}
+.title-block{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sub{color:var(--muted);font-size:.92rem}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 12px;font-size:.84rem;font-weight:700;cursor:pointer}
+.btn:hover{background:var(--sunk)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:transparent;padding:10px 14px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap;font-size:.95rem}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.view{display:flex;flex-direction:column;gap:16px}
+
+/* Design picker */
+.designs{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.1fr) minmax(0,1.1fr);gap:12px}
+@media (max-width:900px){.designs{grid-template-columns:minmax(0,1fr)}}
+.dcard{text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-width:0}
+.dcard:hover{border-color:var(--muted)}
+.dcard .dt{display:flex;align-items:center;gap:8px}
+.dcard .dt i{width:12px;height:12px;border-radius:50%;flex:none}
+.dcard b{font-family:var(--f-display);font-size:1.02rem;font-weight:700}
+.dcard p{font-size:.86rem;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--sunk);color:var(--muted)}
+.dcard[data-p="Option A"] .chip{background:var(--a-soft);color:var(--a)}
+.dcard[data-p="Option B"] .chip{background:var(--b-soft);color:var(--b)}
+.dcard[aria-pressed="true"][data-p="Before AI"]{border-color:var(--before-fill);background:var(--before-soft)}
+.dcard[aria-pressed="true"][data-p="Option A"]{border-color:var(--a-fill);background:var(--a-soft)}
+.dcard[aria-pressed="true"][data-p="Option B"]{border-color:var(--b-fill);background:var(--b-soft)}
+.dcard[aria-pressed="true"] p{color:var(--ink)}
+.hz{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.seg{display:inline-flex;background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;padding:6px 12px;border-radius:7px;cursor:pointer;font-weight:700;font-size:.86rem;color:var(--muted);white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+
+/* Office split */
+.main{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:980px){.main{grid-template-columns:minmax(0,1fr)}}
+.stage{position:relative;overflow:hidden;background:var(--stage)}
+#scene{position:relative;width:100%;aspect-ratio:16/10;max-height:72vh;touch-action:none}
+@media (max-width:620px){#scene{aspect-ratio:4/4.4}}
+#scene canvas{display:block;width:100%!important;height:100%!important;cursor:grab}
+#overlay{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.zl{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:1px;white-space:nowrap}
+.zl b{font-family:var(--f-display);font-size:.76rem;font-weight:600;color:#26354A;background:rgba(255,255,255,.88);padding:2px 7px;border-radius:5px}
+.zl span{font-size:.66rem;font-weight:700;padding:1px 6px;border-radius:4px;background:rgba(255,255,255,.72);color:#4A5A70}
+.zl.lit span{background:#1D4ED8;color:#fff}
+.zl.warm span{background:#EA580C;color:#fff}
+.zl.dim{opacity:.62}
+.bub{position:absolute;transform:translate(-50%,-100%);font-size:.66rem;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:6px;white-space:nowrap;
+  background:#fff;color:#334155;border:1px solid rgba(15,23,42,.14);box-shadow:0 1px 3px rgba(15,23,42,.15);transition:opacity .25s;pointer-events:auto;cursor:pointer;font-family:var(--f-body)}
+.bub::after{content:"";position:absolute;left:50%;bottom:-4px;width:6px;height:6px;background:inherit;border-right:1px solid rgba(15,23,42,.14);border-bottom:1px solid rgba(15,23,42,.14);transform:translateX(-50%) rotate(45deg)}
+.bub:hover,.bub.on{outline:2px solid #111827;outline-offset:1px}
+.bub.warm{background:#FFF1E2;color:#9A3412;border-color:#F5B37A}
+.bub.cool{background:#E7EFFE;color:#1E40AF;border-color:#9DB9F5}
+.bub.ai{background:#1F2937;color:#E5E7EB;border-color:#1F2937}
+.bub.leave{background:#F1F5F9;color:#64748B}
+.bub.lead{background:#0F766E;color:#fff;border-color:#0F766E}
+.door{position:absolute;left:max(12px, env(safe-area-inset-left, 0px));bottom:12px;background:rgba(255,255,255,.93);color:#1E293B;border-radius:10px;padding:8px 12px;border:1px solid rgba(15,23,42,.12);max-width:min(250px,58%)}
+.door .n{font-family:var(--f-display);font-size:1.25rem;font-weight:700;line-height:1.1}
+.door small{display:block;font-size:.68rem;color:#556274;line-height:1.3}
+.door.bump .n{animation:bump .5s ease}
+@keyframes bump{40%{transform:scale(1.15)}}
+.stage-tools{position:absolute;right:max(10px, env(safe-area-inset-right, 0px));top:10px;display:flex;gap:6px}
+.stage-tools button{border:1px solid rgba(15,23,42,.14);background:rgba(255,255,255,.92);color:#1E293B;border-radius:8px;padding:5px 9px;font-size:.76rem;font-weight:700;cursor:pointer}
+.tap-hint{position:absolute;left:50%;top:10px;transform:translateX(-50%);background:#111827;color:#fff;font-size:.78rem;font-weight:700;padding:5px 12px;border-radius:999px;pointer-events:none;white-space:nowrap;transition:opacity .4s}
+@media (max-width:620px){.tap-hint{top:46px}}
+.nogl{padding:40px 20px;text-align:center;color:var(--muted)}
+
+/* Person card */
+.pcard{position:absolute;top:48px;right:max(10px, env(safe-area-inset-right, 0px));width:min(320px,calc(100% - 20px));max-height:calc(100% - 60px);overflow:auto;
+  background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(15,23,42,.22);z-index:3}
+@media (max-width:620px){.pcard{top:auto;bottom:8px;max-height:78%}}
+.pc-x{position:sticky;top:6px;float:right;margin:6px 6px 0 0;border:0;background:var(--sunk);color:var(--ink);width:28px;height:28px;border-radius:7px;font-size:1.1rem;line-height:1;cursor:pointer;z-index:1}
+.pc-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:11px}
+.pc-head{display:flex;gap:10px;align-items:center;padding-right:30px}
+.pc-av{width:34px;height:34px;border-radius:50%;flex:none;border:3px solid var(--sunk)}
+.pc-id{display:flex;flex-direction:column;min-width:0}
+.pc-id b{font-family:var(--f-display);font-weight:600;font-size:1.02rem}
+.pc-id small{font-size:.76rem;color:var(--muted)}
+.pc-tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--sunk);border-radius:9px;padding:3px;gap:3px}
+.pc-tabs button{border:0;background:transparent;border-radius:7px;padding:6px 4px;font-size:.8rem;font-weight:700;color:var(--muted);cursor:pointer}
+.pc-tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.pc-tabs button.ta[aria-selected="true"]{color:var(--a)} .pc-tabs button.tb[aria-selected="true"]{color:var(--b)}
+.pc-role{display:flex;flex-direction:column;gap:1px;padding:9px 11px;border-radius:9px;background:var(--before-soft)}
+.pc-role.ra{background:var(--a-soft)} .pc-role.rb{background:var(--b-soft)}
+.pc-role b{font-family:var(--f-display);font-size:1.05rem;font-weight:700}
+.pc-role.ra b{color:var(--a)} .pc-role.rb b{color:var(--b)}
+.pc-role small{font-size:.8rem;color:var(--ink)}
+.pc-sec{display:flex;flex-direction:column;gap:4px}
+.pc-sec p{font-size:.86rem}
+.pc-q{font-style:italic;color:var(--muted);font-size:.84rem}
+.pc-chg{display:flex;flex-direction:column;gap:3px}
+.pc-chg div{display:grid;grid-template-columns:minmax(0,1fr) auto 36px;gap:8px;align-items:center;font-size:.84rem;padding:3px 0;border-bottom:1px solid var(--line)}
+.pc-chg em{font-style:normal;font-weight:700;font-size:.78rem;text-align:right}
+.up{color:var(--good)} .dn{color:var(--bad)}
+.pc-perf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.pc-perf div{background:var(--sunk);border-radius:8px;padding:6px 9px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 6px}
+.pc-perf span{font-size:.72rem;color:var(--muted);width:100%}
+.pc-perf b{font-size:1rem}
+.pc-perf em{font-style:normal;font-weight:700;font-size:.74rem}
+.pc-note{font-size:.74rem;color:var(--muted)}
+
+/* Performance side panel */
+.panel{padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.pm{display:flex;flex-direction:column;gap:10px}
+.pm-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:baseline}
+.pm-row .l{font-weight:700;font-size:.9rem}
+.pm-row .l small{display:block;font-weight:400;color:var(--muted);font-size:.74rem}
+.pm-row .v{font-family:var(--f-display);font-size:1.45rem;font-weight:700;text-align:right;line-height:1}
+.pm-row .d{grid-column:1/-1;display:flex;gap:10px;font-size:.76rem;color:var(--muted);flex-wrap:wrap}
+.pm-row .d b{font-family:var(--f-mono);font-weight:600}
+.pm-track{grid-column:1/-1;height:7px;background:var(--sunk);border-radius:4px;overflow:hidden;position:relative}
+.pm-track i{position:absolute;top:0;bottom:0;left:0;border-radius:4px;transition:width .35s}
+.pm-track s{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.45}
+.verdict{background:var(--sunk);border-radius:10px;padding:11px 13px;font-size:.87rem;display:flex;flex-direction:column;gap:4px}
+.verdict strong{font-family:var(--f-display);font-weight:600}
+
+/* Dashboard */
+.dash-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:960px){.dash-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:480px){.dash-grid{grid-template-columns:minmax(0,1fr)}}
+.sec{padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.sec-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.sec-head p{font-size:.86rem;color:var(--muted);max-width:70ch}
+.mcard{padding:14px;display:flex;flex-direction:column;gap:8px}
+.mcard h3 small{font-family:var(--f-body);font-weight:400;color:var(--muted);font-size:.74rem;margin-left:4px}
+.brow{display:grid;grid-template-columns:86px minmax(0,1fr) 44px;gap:8px;align-items:center}
+.brow .who{font-size:.74rem;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brow .track{height:10px;background:var(--sunk);border-radius:5px;overflow:hidden}
+.brow .fill{height:100%;border-radius:5px;transition:width .35s ease}
+.brow .val{font-family:var(--f-mono);font-size:.8rem;text-align:right;font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:14px;font-size:.78rem;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.xtab-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.84rem}
+th,td{padding:7px 9px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+td{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+td:first-child{font-family:var(--f-body)}
+td.win.a{color:var(--a);font-weight:700} td.win.b{color:var(--b);font-weight:700}
+.prof td .cell{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.prof td .cell span.bar{display:inline-block;height:8px;border-radius:4px;width:var(--w);min-width:2px}
+.prof td em{font-style:normal;font-weight:700;font-size:.74rem;display:inline-block;min-width:26px}
+.prof .grp td{font-family:var(--f-body);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;background:var(--sunk)}
+.diag{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:960px){.diag{grid-template-columns:minmax(0,1fr)}}
+.dg{padding:14px;display:flex;flex-direction:column;gap:10px;border-top:4px solid var(--before-fill)}
+.dg.a{border-top-color:var(--a-fill)} .dg.b{border-top-color:var(--b-fill)}
+.dg h3{font-size:1.02rem}
+.dg .row{display:flex;flex-direction:column;gap:3px}
+.dg .lab{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.dg .lab.ok{color:var(--good)} .dg .lab.mid{color:var(--warn)} .dg .lab.bad{color:var(--bad)} .dg .lab.chg{color:var(--muted)}
+.dg .items{display:flex;flex-wrap:wrap;gap:5px}
+.dg .it{font-size:.78rem;padding:2px 8px;border-radius:6px;background:var(--sunk)}
+.dg .it b{font-family:var(--f-mono)}
+.dg .lever{font-size:.84rem;background:var(--sunk);border-radius:8px;padding:8px 10px}
+.mps{display:flex;gap:10px;flex-wrap:wrap}
+.mps div{flex:1 1 140px;background:var(--sunk);border-radius:10px;padding:10px 12px}
+.mps b{font-family:var(--f-display);font-size:1.4rem;font-weight:700;display:block}
+.mps span{font-size:.76rem;color:var(--muted)}
+
+
+/* Dashboard v2 */
+.headline{padding:22px 24px;display:flex;flex-direction:column;gap:18px;background:linear-gradient(135deg,var(--surface) 55%,var(--b-soft))}
+.headline.awin{background:linear-gradient(135deg,var(--surface) 55%,var(--a-soft))}
+.headline .hl{font-family:var(--f-display);font-size:clamp(1.35rem,1rem + 1.4vw,2.05rem);font-weight:700;line-height:1.15;max-width:30ch}
+.headline .hl .b{color:var(--b)} .headline .hl .a{color:var(--a)}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line)}
+.tile .big{font-family:var(--f-display);font-size:2rem;font-weight:800;line-height:1}
+.tile .big.b{color:var(--b)} .tile .big.a{color:var(--a)}
+.tile span{font-size:.8rem;color:var(--muted)}
+.tile b.who{font-size:.74rem;font-weight:700}
+.dash2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:900px){.dash2{grid-template-columns:minmax(0,1fr)}}
+#seg-metric{display:flex;flex-wrap:wrap;width:max-content;max-width:100%}
+#slope svg,#dumbbell svg{width:100%;height:auto;display:block;overflow:visible}
+.diag{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.diag{grid-template-columns:minmax(0,1fr)}}
+.dg{padding:18px;display:flex;flex-direction:column;gap:14px;border-top:5px solid var(--a-fill)}
+.dg.b{border-top-color:var(--b-fill)}
+.dg h3{font-size:1.1rem}
+.dg .move{font-size:1rem;line-height:1.4;padding:12px 14px;border-radius:10px;background:var(--a-soft)}
+.dg.b .move{background:var(--b-soft)}
+.dg .move small{display:block;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--muted);margin-bottom:2px}
+.dg .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dg .lab{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;display:block}
+.dg .lab.ok{color:var(--good)} .dg .lab.bad{color:var(--bad)}
+.dg ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:.88rem}
+.dg li{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--line);padding-bottom:3px}
+.dg li b{font-family:var(--f-mono)}
+.numbers{padding:14px 18px}
+.numbers summary{font-size:.92rem}
+.mps{display:flex;gap:10px;flex-wrap:wrap}
+.mps div{flex:1 1 140px;background:var(--sunk);border-radius:10px;padding:10px 12px}
+.mps b{font-family:var(--f-display);font-size:1.4rem;font-weight:700;display:block}
+.mps span{font-size:.76rem;color:var(--muted)}
+.svg-t{font-family:var(--f-body);font-size:13px;fill:var(--muted)}
+.svg-v{font-family:var(--f-mono);font-size:13px;font-weight:600}
+.svg-l{font-family:var(--f-body);font-size:13px;fill:var(--ink)}
+
+/* Model tab */
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:.76rem;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);white-space:nowrap}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--good)}
+.pill.custom .dot{background:var(--warn)} .pill.fail .dot{background:#DC2626}
+.bench{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:860px){.bench{grid-template-columns:minmax(0,1fr)}}
+.full{grid-column:1/-1}
+.sliders{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 22px}
+@media (max-width:520px){.sliders{grid-template-columns:minmax(0,1fr)}}
+.sgroup{display:flex;flex-direction:column;gap:10px;min-width:0}
+.sgroup .eyebrow{border-bottom:1px solid var(--line);padding-bottom:4px}
+.sl{display:flex;flex-direction:column;gap:2px}
+.sl-top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.sl label{font-weight:700;font-size:.86rem}
+.sl .v{font-family:var(--f-mono);font-size:.86rem}
+.sl .v.edited{color:var(--warn)}
+.sl small{font-size:.74rem;color:var(--muted);line-height:1.3}
+input[type=range]{width:100%;accent-color:var(--b-fill)}
+body[data-edit="Option A"] .sliders input[type=range]{accent-color:var(--a-fill)}
+body[data-edit="Before AI"] .sliders input[type=range]{accent-color:var(--before-fill)}
+.note{font-size:.8rem;border-left:3px solid var(--warn);padding:6px 10px;background:var(--sunk);border-radius:0 8px 8px 0}
+.calc{font-family:var(--f-mono);font-size:.8rem;background:var(--sunk);border-radius:10px;padding:12px 14px;overflow-x:auto;line-height:1.75}
+.calc .r{white-space:nowrap} .calc .k{color:var(--muted)} .calc b{font-weight:600}
+.wsplit{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.84rem}
+details{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+summary{cursor:pointer;font-weight:700;font-size:.88rem}
+.consts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;margin-top:12px}
+@media (max-width:520px){.consts{grid-template-columns:minmax(0,1fr)}}
+.const{display:flex;flex-direction:column;gap:2px}
+.const label{font-size:.8rem;font-weight:700}
+.const small{font-size:.72rem;color:var(--muted);line-height:1.3}
+.const input{width:100%;padding:5px 8px;border:1px solid var(--line);border-radius:7px;background:var(--bg);font-family:var(--f-mono);font-size:.84rem}
+.const input.edited{border-color:var(--warn)}
+textarea{width:100%;min-height:84px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-family:var(--f-mono);font-size:.76rem;padding:8px}
+.rowx{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.msg{font-size:.8rem;color:var(--muted)}
+.map td,.map th{white-space:normal;text-align:left;vertical-align:top}
+.map td{font-family:var(--f-body)}
+.map code{font-family:var(--f-mono);font-size:.76rem;background:var(--sunk);padding:1px 5px;border-radius:4px}
+.tag{display:inline-block;font-size:.68rem;font-weight:700;padding:1px 6px;border-radius:4px}
+.tag.a{background:var(--a-soft);color:var(--a)} .tag.b{background:var(--b-soft);color:var(--b)} .tag.o{background:var(--before-soft);color:var(--before)}
+.limits{display:flex;flex-direction:column;gap:12px;margin:0;padding:0;list-style:none}
+.limits li{display:flex;flex-direction:column;gap:3px;padding-left:12px;border-left:2px solid var(--line)}
+.limits li b{font-family:var(--f-display);font-weight:600;font-size:.94rem}
+.limits li span{font-size:.86rem;color:var(--muted);max-width:75ch}
+.refs{margin:0;padding-left:18px;font-size:.8rem;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+
+/* Intro */
+.intro{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(10,15,25,.86);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.intro-box{width:min(820px,100%);display:grid;grid-template-columns:190px minmax(0,1fr);gap:10px;align-items:end;animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+@media (max-width:560px){.intro-box{grid-template-columns:minmax(0,1fr)}.intro-char{justify-self:center;width:110px}}
+.intro-char{width:190px;animation:hop 2.4s ease-in-out infinite}
+.intro-char .wave{transform-box:view-box;transform-origin:107px 112px;animation:wave 1.6s ease-in-out infinite}
+@keyframes wave{0%,100%{transform:rotate(0)}50%{transform:rotate(-14deg)}}
+@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.speech{background:var(--surface);color:var(--ink);border-radius:22px;padding:30px 34px 22px;position:relative;box-shadow:0 24px 70px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:18px;min-height:320px}
+#intro-body{display:flex;flex-direction:column;gap:14px}
+@media (max-width:560px){.speech{padding:22px 20px 16px;min-height:300px}}
+.speech::before{content:"";position:absolute;left:-9px;bottom:42px;width:18px;height:18px;background:inherit;transform:rotate(45deg)}
+@media (max-width:560px){.speech::before{left:50%;top:-9px;bottom:auto;transform:translateX(-50%) rotate(45deg)}}
+.speech .who{font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;font-weight:700;color:var(--lead)}
+.speech h2{font-size:clamp(1.4rem,1.1rem + 1vw,1.85rem);font-weight:700}
+.speech p{font-size:1.08rem;line-height:1.6;max-width:52ch}
+.speech .opt{display:flex;flex-direction:column;gap:8px}
+.speech .opt div{padding:10px 14px;border-radius:12px;font-size:.98rem;line-height:1.4}
+.speech .opt b{display:block;font-family:var(--f-display);font-size:1.02rem}
+.speech .opt .oa{background:var(--a-soft)} .speech .opt .oa b{color:var(--a)}
+.speech .opt .ob{background:var(--b-soft)} .speech .opt .ob b{color:var(--b)}
+.speech .opt .of{background:var(--sunk)}
+.speech .chip.a{background:var(--a-soft);color:var(--a)} .speech .chip.b{background:var(--b-soft);color:var(--b)} .speech .chip.f{background:var(--sunk);color:var(--ink)}
+.speech-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto}
+.dots{display:flex;gap:5px}
+.dots i{width:9px;height:9px;transition:all .2s;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--lead);width:22px;border-radius:5px}
+.skip{border:0;background:transparent;color:var(--muted);font-weight:700;cursor:pointer;font-size:.84rem}
+@media (prefers-reduced-motion: reduce){.intro-char,.intro-char .wave,.intro-box{animation:none}.door.bump .n{animation:none}.brow .fill,.pm-track i{transition:none}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="title-block">
+      <h1>Work Design Simulator</h1>
+      <p class="sub">HR Operations · same AI, different job design · Job Characteristics Model + Self-Determination Theory</p>
+    </div>
+    <button class="btn" id="btn-intro" type="button">▶ Replay intro</button>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Views">
+    <button role="tab" data-view="office" aria-selected="true">Office</button>
+    <button role="tab" data-view="dash" aria-selected="false">Dashboard: compare all</button>
+    <button role="tab" data-view="model" aria-selected="false">Model &amp; settings</button>
+  </nav>
+
+  <!-- OFFICE -->
+  <section class="view" id="view-office">
+    <div class="designs" role="group" aria-label="Choose a job design">
+      <button class="dcard" data-p="Before AI" type="button">
+        <span class="dt"><i style="background:var(--before-fill)"></i><b>Before AI</b></span>
+        <p>No AI. Each coordinator handles a request from intake to signed letter.</p>
+      </button>
+      <button class="dcard" data-p="Option A" type="button">
+        <span class="dt"><i style="background:var(--a-fill)"></i><b>Automate only</b></span>
+        <p>AI sends the standard letters. The job is not redesigned: people get only what the AI rejects.</p>
+        <span class="chips"><span class="chip">Exceptions only</span><span class="chip">Chase SLAs</span><span class="chip">Escalate anything unusual</span></span>
+      </button>
+      <button class="dcard" data-p="Option B" type="button">
+        <span class="dt"><i style="background:var(--b-fill)"></i><b>Automate + redesign</b></span>
+        <p>Same AI. The job is rebuilt around judgment. Compared with Automate only, it adds:</p>
+        <span class="chips"><span class="chip">+ Own cases end to end</span><span class="chip">+ Tune the AI's rules</span><span class="chip">+ Peer coaching</span><span class="chip">+ Feedback on results</span></span>
+      </button>
+    </div>
+
+    <div class="main">
+      <div class="card stage">
+        <div id="scene" aria-label="3D office of the HR Operations team"></div>
+        <div id="overlay"></div>
+        <div class="tap-hint" id="tap-hint">Tap a person to see their story</div>
+        <div class="stage-tools">
+          <button id="btn-view" type="button">Reset view</button>
+          <button id="btn-pause" type="button">Pause</button>
+        </div>
+        <div class="door" id="door"><div class="n" id="door-n">+0 left work</div><small id="door-cap">turnover pressure · illustrative</small></div>
+        <div class="pcard" id="pcard" hidden role="dialog" aria-label="Team member details"><button class="pc-x" id="pcard-close" type="button" aria-label="Close details">×</button><div class="pc-body"></div></div>
+      </div>
+
+      <aside class="card panel">
+        <div class="hz">
+          <div class="seg seg-h" role="group" aria-label="Time after rollout">
+            <button data-h="3m" type="button">3 months</button>
+            <button data-h="12m" type="button">12 months</button>
+          </div>
+          <span class="muted" style="font-size:.8rem">after the AI rollout</span>
+        </div>
+        <div>
+          <span class="eyebrow">Performance</span>
+          <h2 id="pm-title">Automate + redesign</h2>
+        </div>
+        <div class="pm" id="pm"></div>
+        <div class="verdict" id="verdict"></div>
+        <button class="btn" type="button" data-goto="dash">See the full comparison →</button>
+      </aside>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section class="view" id="view-dash" hidden>
+    <div class="hz" style="justify-content:space-between">
+      <div class="legend"><span><i style="background:var(--before-fill)"></i>Before AI</span><span><i style="background:var(--a-fill)"></i>Automate only</span><span><i style="background:var(--b-fill)"></i>Automate + redesign</span></div>
+      <div class="seg seg-h" role="group" aria-label="Time after rollout"><button data-h="3m" type="button">3 months</button><button data-h="12m" type="button">12 months</button></div>
+    </div>
+
+    <div class="card headline" id="headline"></div>
+
+    <div class="dash2">
+      <div class="card sec">
+        <div><span class="eyebrow">Over time</span><h2>The trap: early wins fade</h2></div>
+        <div class="seg" role="group" aria-label="Metric" id="seg-metric">
+          <button data-m="Volume" type="button">Volume</button><button data-m="Quality" type="button">Quality</button><button data-m="Motivation" type="button">Motivation</button><button data-m="Retention" type="button">Retention risk</button>
+        </div>
+        <div id="slope"></div>
+        <p class="muted" style="font-size:.82rem" id="slope-note"></p>
+      </div>
+      <div class="card sec">
+        <div><span class="eyebrow">Why</span><h2>How each job feels</h2><p class="muted" style="font-size:.82rem">Each row is one job characteristic, scored 1–7. Further right is better.</p></div>
+        <div id="dumbbell"></div>
+      </div>
+    </div>
+
+    <div>
+      <div style="margin-bottom:10px"><span class="eyebrow">What to do about it</span><h2>Diagnosis</h2></div>
+      <div class="diag" id="diag"></div>
+    </div>
+
+    <details class="card numbers">
+      <summary>See all the numbers</summary>
+      <div style="display:flex;flex-direction:column;gap:16px;margin-top:12px">
+        <div class="mps" id="mps"></div>
+        <div class="xtab-wrap"><table id="xtab"></table></div>
+        <div class="xtab-wrap"><table class="prof" id="prof"></table></div>
+      </div>
+    </details>
+  </section>
+
+  <!-- MODEL -->
+  <section class="view" id="view-model" hidden>
+    <div class="pills" aria-live="polite">
+      <span class="pill" id="pill-parity"><span class="dot"></span><span>Checking v1 parity…</span></span>
+      <span class="pill" id="pill-settings"><span class="dot"></span><span>Model: v1 settings</span></span>
+      <span class="pill" id="pill-inputs"><span class="dot"></span><span>Inputs: v1 defaults</span></span>
+    </div>
+    <div class="bench">
+      <div class="card sec">
+        <div class="sec-head">
+          <div><span class="eyebrow">Job profile inputs · 1–7</span><h2>Edit a design</h2></div>
+          <button class="btn" id="btn-reset-prof" type="button">Reset this design</button>
+        </div>
+        <div class="seg" role="group" aria-label="Design to edit" id="seg-edit">
+          <button data-p="Before AI" type="button">Before AI</button><button data-p="Option A" type="button">Automate only</button><button data-p="Option B" type="button">Redesign</button>
+        </div>
+        <div class="sliders" id="sliders"></div>
+        <div class="note" id="aut-note" hidden></div>
+      </div>
+      <div class="card sec">
+        <div class="sec-head"><div><span class="eyebrow">How the score is built</span><h2 id="calc-title">Redesign, step by step</h2></div></div>
+        <div class="calc" id="calc"></div>
+        <p class="muted" style="font-size:.8rem">Feedback means knowing the results of your own work. The 3-month retention risk is 55% of the 12-month value. Volume erodes over 12 months as retention risk rises.</p>
+      </div>
+      <div class="card sec">
+        <div class="sec-head">
+          <div><span class="eyebrow">Model settings</span><h2>Weights and constants</h2><p>v1 values are the default. Change them to test other theories or to enter weights estimated from your own data.</p></div>
+          <button class="btn" id="btn-reset-set" type="button">Reset to v1</button>
+        </div>
+        <div class="sl">
+          <div class="sl-top"><label for="w-jcm">JCM strength in Motivation</label><span class="mono" id="w-jcm-v">40%</span></div>
+          <input type="range" id="w-jcm" min="0" max="1" step="0.05" value="0.4">
+          <div class="wsplit"><span>JCM (MPS) <b id="w-a">0.40</b></span><span>SDT <b id="w-b">0.60</b></span></div>
+          <small>Motivation = 100 × (w × MPS/343 + (1 − w) × SDT/7). v1 uses w = 0.40.</small>
+        </div>
+        <details><summary>All model constants</summary><div class="consts" id="consts"></div></details>
+        <details>
+          <summary>Save or load a scenario</summary>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+            <div class="rowx"><button class="btn" id="btn-copy" type="button">Copy scenario</button><span class="msg" id="copy-msg"></span></div>
+            <label for="scn-in" style="font-size:.8rem;font-weight:700">Paste a scenario</label>
+            <textarea id="scn-in" placeholder='{"version":"wds-vnext-1", ...}'></textarea>
+            <div class="rowx"><button class="btn" id="btn-load" type="button">Load scenario</button><span class="msg" id="load-msg"></span></div>
+          </div>
+        </details>
+      </div>
+      <div class="card sec">
+        <div class="sec-head"><div><span class="eyebrow">Scores → office</span><h2>What each activity means</h2><p>Who does what comes from the job design. How many leave and how rushed the office looks come from the scores.</p></div></div>
+        <div class="xtab-wrap"><table class="map">
+          <thead><tr><th>Role</th><th>Where</th><th>Why, in theory</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tag o">Before</span> Letter &amp; form processor</td><td>Desks</td><td>Handles each case manually end to end. Low autonomy (3).</td></tr>
+            <tr><td><span class="tag a">A</span> Exception firefighter</td><td>Desks, AI console</td><td>Task identity 2: only fragments the AI rejected.</td></tr>
+            <tr><td><span class="tag a">A</span> Escalation runner</td><td>Meeting</td><td>Autonomy 2: decisions pushed up to the Team Lead.</td></tr>
+            <tr><td><span class="tag b">B</span> AI rule tuner</td><td>Rules board</td><td>Autonomy 6, Feedback 6: decides what the AI may send.</td></tr>
+            <tr><td><span class="tag b">B</span> Case owner</td><td>Desks, meeting</td><td>Task identity 6: owns exceptions start to finish.</td></tr>
+            <tr><td><span class="tag b">B</span> Peer coach</td><td>Lounge</td><td>SDT relatedness 5: peer coaching pairs.</td></tr>
+            <tr><td>Leaving</td><td>Exit door</td><td><code>+N = round(Retention risk ÷ 8.5)</code>, a pressure index. Only 0–2 people walk out, so it never reads as headcount.</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="card sec full">
+        <div class="sec-head"><div><span class="eyebrow">Read before using for prediction</span><h2>Model assumptions and limits</h2></div></div>
+        <ul class="limits">
+          <li><b>Autonomy appears in both JCM and SDT</b><span>In v1 the two autonomy inputs share the same defaults, so autonomy counts twice. They are separate sliders: job autonomy is what the role allows, felt autonomy is the person's experience. With real data, measure each with its own scale.</span></li>
+          <li><b>Only Volume and Retention change over time</b><span>Quality and Motivation are the same at 3 and 12 months by design. The "Automate only wins early" result comes from volume alone (a 3.3-point gap in v1).</span></li>
+          <li><b>Higher autonomy lowers volume, by assumption</b><span>0.75 × (7 − Autonomy) says people with more discretion spend time on judgment. This is a modelling choice; change the coefficient to test it.</span></li>
+          <li><b>The exit door is illustrative</b><span>+N is Retention risk ÷ 8.5. It signals turnover pressure, not a resignation forecast.</span></li>
+          <li><b>Not yet calibrated</b><span>Weights are set by reasoning. To use this for prediction, collect JCM/SDT survey scores and real outcomes (throughput, error rate, exits), estimate the weights by regression and enter them above.</span></li>
+        </ul>
+      </div>
+      <div class="card sec full">
+        <div class="sec-head"><div><span class="eyebrow">About this project</span><h2>Built by Viann</h2></div></div>
+        <p style="font-size:.88rem;max-width:80ch">Concept, case design, framework choices and scoring logic by Viann (MSocSc Industrial-Organisational Psychology). Interface and 3D office built with AI assistance (Claude). A teaching and decision-support prototype, not a validated forecasting tool.</p>
+        <ul class="refs">
+          <li>Hackman, J. R., &amp; Oldham, G. R. (1976). Motivation through the design of work: Test of a theory. <i>Organizational Behavior and Human Performance, 16</i>(2), 250–279.</li>
+          <li>Deci, E. L., &amp; Ryan, R. M. (2000). The "what" and "why" of goal pursuits: Human needs and the self-determination of behavior. <i>Psychological Inquiry, 11</i>(4), 227–268.</li>
+          <li>Parker, S. K., &amp; Grote, G. (2022). Automation, algorithms, and beyond: Why work design matters more than ever in a digital world. <i>Applied Psychology, 71</i>(4), 1171–1204.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- INTRO -->
+<div class="intro" id="intro" hidden role="dialog" aria-modal="true" aria-labelledby="intro-title">
+  <div class="intro-box">
+    <svg class="intro-char" viewBox="0 0 150 190" aria-hidden="true">
+      <ellipse cx="75" cy="182" rx="38" ry="6" fill="rgba(0,0,0,.25)"/>
+      <rect x="58" y="140" width="14" height="36" rx="5" fill="#1E293B"/><rect x="78" y="140" width="14" height="36" rx="5" fill="#1E293B"/>
+      <rect x="54" y="172" width="20" height="9" rx="4" fill="#111827"/><rect x="76" y="172" width="20" height="9" rx="4" fill="#111827"/>
+      <path d="M47 104 q28-14 56 0 l5 44 h-66z" fill="#0F766E"/>
+      <rect x="69" y="112" width="12" height="16" rx="2" fill="#F8FAFC"/>
+      <rect x="36" y="106" width="13" height="38" rx="6" fill="#0F766E" transform="rotate(10 42 106)"/>
+      <g class="wave"><rect x="101" y="78" width="13" height="38" rx="6" fill="#0F766E" transform="rotate(-35 107 112)"/><circle cx="124" cy="80" r="8" fill="#E8B894"/></g>
+      <circle cx="75" cy="64" r="40" fill="#E8B894"/>
+      <path d="M35 62 a40 40 0 0 1 80 0 q-14-20-40-18 q-26-2-40 18z" fill="#1F1A17"/>
+      <circle cx="62" cy="70" r="4.5" fill="#1F2937"/><circle cx="88" cy="70" r="4.5" fill="#1F2937"/>
+      <circle cx="54" cy="80" r="5" fill="#F4A6A6" opacity=".6"/><circle cx="96" cy="80" r="5" fill="#F4A6A6" opacity=".6"/>
+      <path d="M67 86 q8 7 16 0" stroke="#7C2D12" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </svg>
+    <div class="speech">
+      <span class="who">Mei · HR Ops Team Lead</span>
+      <div id="intro-body"></div>
+      <div class="speech-foot">
+        <div class="dots" id="intro-dots"></div>
+        <div class="rowx">
+          <button class="skip" id="intro-skip" type="button">Skip</button>
+          <button class="btn" id="intro-back" type="button">Back</button>
+          <button class="btn primary" id="intro-next" type="button">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+"use strict";
+"use strict";
+/* ================= Scoring engine (mirrors scoring.js v1 exactly) ================= */
+const PROFILES = ["Before AI","Option A","Option B"];
+const V1 = Object.freeze({
+  MPS_MAX:343, LIKERT_MAX:7, W_MOT_MPS:0.4, W_MOT_SDT:0.6,
+  BASE_AI_CAPACITY:80, VOL_COEF_LOW_AUT:0.75, VOL_COEF_FB:0.1,
+  BASE_AI_ACCURACY:70, QUALITY_SPAN:30, W_Q_TI:0.35, W_Q_FB:0.35, W_Q_COMP:0.3,
+  RR_3M_MULT:0.55, VOL_12M_EROSION:0.35, LEAVE_DIVISOR:8.5
+});
+const DEFAULTS = Object.freeze({
+  "Before AI":{SV:4,TI:5,TS:5,Autonomy:3,Feedback:3,SDT_Autonomy:3,SDT_Competence:5,SDT_Relatedness:4},
+  "Option A": {SV:3,TI:2,TS:3,Autonomy:2,Feedback:3,SDT_Autonomy:2,SDT_Competence:3,SDT_Relatedness:2},
+  "Option B": {SV:5,TI:6,TS:5,Autonomy:6,Feedback:6,SDT_Autonomy:6,SDT_Competence:6,SDT_Relatedness:5}
+});
+function scoreProfile(p, S){
+  const coreJcm=(p.SV+p.TI+p.TS)/3;
+  const mps=coreJcm*p.Autonomy*p.Feedback;
+  const mpsNorm=mps/S.MPS_MAX;
+  const sdt=(p.SDT_Autonomy+p.SDT_Competence+p.SDT_Relatedness)/3;
+  const sdtNorm=sdt/S.LIKERT_MAX;
+  const motivation=100*(S.W_MOT_MPS*mpsNorm+S.W_MOT_SDT*sdtNorm);
+  const volume=S.BASE_AI_CAPACITY+S.VOL_COEF_LOW_AUT*(S.LIKERT_MAX-p.Autonomy)-S.VOL_COEF_FB*p.Feedback;
+  const quality=S.BASE_AI_ACCURACY+S.QUALITY_SPAN*(S.W_Q_TI*p.TI/S.LIKERT_MAX+S.W_Q_FB*p.Feedback/S.LIKERT_MAX+S.W_Q_COMP*p.SDT_Competence/S.LIKERT_MAX);
+  const retention=100-motivation; // v1 lock: Motivation-only
+  return {coreJcm,MPS:mps,MPS_norm:mpsNorm,SDT:sdt,SDT_norm:sdtNorm,Motivation:motivation,Volume:volume,Quality:quality,Retention:retention,
+    Volume_3m:volume,Quality_3m:quality,Motivation_3m:motivation,RetentionRisk_3m:retention*S.RR_3M_MULT,
+    Volume_12m:volume*(1-S.VOL_12M_EROSION*retention/100),Quality_12m:quality,Motivation_12m:motivation,RetentionRisk_12m:retention};
+}
+function scoreAll(inputs,S){const r={};for(const k of PROFILES)r[k]=scoreProfile(inputs[k],S);return r;}
+function atH(r,h){return h==="3m"
+  ?{Volume:r.Volume_3m,Quality:r.Quality_3m,Motivation:r.Motivation_3m,Retention:r.RetentionRisk_3m}
+  :{Volume:r.Volume_12m,Quality:r.Quality_12m,Motivation:r.Motivation_12m,Retention:r.RetentionRisk_12m};}
+
+/* ================= Office adapter (rebuilt from ADAPTER rules) ================= */
+/* Team: 6 HR Ops Coordinators (the simulated role) + 1 Team Lead (context only, not scored). */
+const TEAM_SIZE=6;
+const STATUSES=["routine_desk","exception_firefight","escalate","buffer_idle","rule_tune","coach_pair","complex_case","leaving"];
+const BASE_WEIGHTS={
+  "Before AI":{"3m":{routine_desk:1},"12m":{routine_desk:1}},
+  "Option A":{"3m":{exception_firefight:.44,escalate:.14,buffer_idle:.10,routine_desk:.20,rule_tune:.01},
+              "12m":{exception_firefight:.48,escalate:.16,buffer_idle:.02,routine_desk:.06,rule_tune:.01}},
+  "Option B":{"3m":{complex_case:.38,rule_tune:.18,coach_pair:.28,buffer_idle:.02,routine_desk:.04},
+              "12m":{complex_case:.38,rule_tune:.18,coach_pair:.28,buffer_idle:.02,routine_desk:.04}}
+};
+function allocate(w,n){
+  const keys=Object.keys(w).filter(k=>w[k]>0);const tot=keys.reduce((s,k)=>s+w[k],0);
+  const raw=keys.map(k=>({k,v:w[k]/tot*n}));const out={};let used=0;
+  raw.forEach(o=>{out[o.k]=Math.floor(o.v);used+=out[o.k];});
+  raw.sort((a,b)=>(b.v-Math.floor(b.v))-(a.v-Math.floor(a.v))||w[b.k]-w[a.k]);
+  for(let i=0;used<n;i=(i+1)%raw.length){out[raw[i].k]++;used++;}
+  return out;
+}
+function ensureMin(c,key,min,protect){
+  while((c[key]||0)<min){
+    const donor=Object.keys(c).filter(k=>k!==key&&!protect.includes(k)&&c[k]>0).sort((a,b)=>c[b]-c[a])[0];
+    if(!donor)break;c[donor]--;c[key]=(c[key]||0)+1;
+  }
+}
+const CHIPS={
+  "Before AI":{routine_desk:"draft letter"},
+  "Option A":{exception_firefight:"SLA firefight",escalate:"escalate",routine_desk:"exception queue",buffer_idle:""},
+  "Option B":{complex_case:"complex case",rule_tune:"tune auto-issue",coach_pair:"coach peer",buffer_idle:"",routine_desk:"spot-check"}
+};
+const POSE={routine_desk:"think",exception_firefight:"type",escalate:"wave",buffer_idle:"sit",rule_tune:"think",coach_pair:"sit",complex_case:"think",leaving:"walk"};
+/* Walkers: people shown walking out. The door number stays round(RR / 8.5); walkers are a
+   smaller, team-sized cue so a 6-person team never looks like it lost 9 people. */
+function walkersFor(leaveCount){return Math.min(2,Math.floor((leaveCount+1)/4));}
+function buildCast({scores,profile,horizon,settings,castSize=TEAM_SIZE}){
+  const r=scores[profile];
+  const rr=horizon==="3m"?r.RetentionRisk_3m:r.RetentionRisk_12m;
+  const leaveCount=Math.max(0,Math.round(rr/settings.LEAVE_DIVISOR));
+  const walkers=walkersFor(leaveCount);
+  const n=castSize-walkers;
+  const w={...BASE_WEIGHTS[profile][horizon]};
+  if(profile==="Option A"){w.exception_firefight+=(w.rule_tune||0)+(w.coach_pair||0)+(w.complex_case||0);w.rule_tune=0;w.coach_pair=0;w.complex_case=0;}
+  if(profile==="Option B"){w.escalate=0;w.exception_firefight=0;}
+  const c=allocate(w,n);
+  if(profile==="Option B"){ensureMin(c,"rule_tune",1,[]);ensureMin(c,"coach_pair",2,["rule_tune"]);ensureMin(c,"complex_case",1,["rule_tune","coach_pair"]);}
+  if(profile==="Option A"){ensureMin(c,"exception_firefight",1,[]);}
+  const agents=[];let id=0;
+  const push=(status,zone)=>agents.push({id:id++,status,zone,chip:(CHIPS[profile][status]??""),poseHint:POSE[status]});
+  for(const s of STATUSES){
+    const k=c[s]||0;
+    for(let i=0;i<k;i++){
+      let zone="desks";
+      if(s==="escalate")zone="meet";
+      else if(s==="buffer_idle")zone="lounge";
+      else if(s==="rule_tune")zone="rules";
+      else if(s==="coach_pair")zone=i<2?"lounge":"meet";
+      else if(s==="complex_case")zone=i===0?"meet":"desks";
+      else if(s==="exception_firefight")zone=i===1?"ai":"desks";
+      push(s,zone);
+    }
+  }
+  for(let i=0;i<walkers;i++)push("leaving","exit");
+  for(const a of agents){
+    if(a.zone==="lounge"&&a.chip==="tune auto-issue")a.chip="coach peer";
+    if(profile==="Option B"&&a.zone==="rules")a.chip="tune auto-issue";
+    if(profile==="Option B"&&a.status==="escalate"){a.status="complex_case";a.zone="meet";a.chip="complex case";a.poseHint="think";}
+    if(profile==="Before AI"&&a.status!=="leaving"&&a.status!=="routine_desk"){a.status="routine_desk";a.zone="desks";a.chip="draft letter";}
+  }
+  return {leaveCount,walkers,agents};
+}
+const BUBBLE_LABEL={routine_desk:"routine",exception_firefight:"FIREFIGHT",escalate:"ESCALATE",buffer_idle:"idle",rule_tune:"RULE TUNE",coach_pair:"coach",complex_case:"case",leaving:"leaving"};
+function bubbleLabelFor(a,zone,profile){
+  if(zone==="ai"&&a.status!=="leaving")return "AI";
+  if(a.status==="rule_tune")return "RULE TUNE";
+  if(profile==="Option B"&&(zone==="meet"||a.status==="escalate"))return (a.chip==="complex case"||a.status==="complex_case")?"case":"coach";
+  if(a.status==="coach_pair")return "coach";
+  return BUBBLE_LABEL[a.status]||a.status.replace(/_/g," ");
+}
+
+/* ================= People & HR task content (for the tap-a-person card) ================= */
+const PEOPLE=[
+  {name:"Karen Lau",yrs:6},{name:"Jason Wong",yrs:3},{name:"Priya Nair",yrs:4},
+  {name:"Ivy Cheung",yrs:2},{name:"Daniel Ho",yrs:5},{name:"Sophie Leung",yrs:1}
+];
+const LEAD={name:"Mei Chan",role:"HR Ops Team Lead"};
+const TASKS={
+  routine_desk:{
+    "Before AI":["Typing an employment verification letter from scratch","Checking a leave form for missing approvals","Building an onboarding pack for Monday's new joiners","Keying an address change into the HRIS","Drafting a salary-review confirmation letter","Filing signed contract variations"],
+    "Option A":["Clearing the queue of forms the AI flagged as incomplete"],
+    "Option B":["Spot-checking a sample of letters the AI auto-issued today"]},
+  exception_firefight:["Reworking a contract-variation letter the AI rejected for a missing salary field","Chasing a visa support letter that is 2 days past SLA","Fixing a probation letter the AI matched to the wrong template","Re-sending a benefits form the AI issued with an old policy version"],
+  escalate:["Escalating a non-standard maternity-leave extension: no authority to approve it","Escalating a rehire contract the AI rules do not cover"],
+  buffer_idle:["Waiting for the next exception to drop into the queue"],
+  rule_tune:["Tuning the auto-issue rule for address-change confirmations after 3 false holds this week","Adding a condition so part-time contract variations can auto-issue safely"],
+  complex_case:["Owning a cross-border transfer end to end: contract, visa letter, payroll handover","Handling a return-from-long-leave case with a pay adjustment","Bringing a disputed termination letter to case review"],
+  coach_pair:["Peer coaching: walking a colleague through non-standard leave requests","Peer coaching: reviewing last week's exception decisions together"],
+  leaving:{"Before AI":"Resigned after a year of manual volume and overtime","Option A":"Resigned. Says the job became cleaning up after the bot","Option B":"Leaving for a promotion elsewhere"}
+};
+const AI_TASK={"Option A":"At the AI console: pulling items it could not auto-issue","Option B":"At the AI console: checking how a rule change affected today's auto-issues"};
+const QUOTES={
+  routine_desk:{"Before AI":"Every letter goes through my hands.","Option A":"I only see what the system spits out.","Option B":"Most of this is just checking now."},
+  exception_firefight:"I only ever see the broken ones.",
+  escalate:"I'm not allowed to decide, so it goes up.",
+  buffer_idle:"Nothing to do until something breaks.",
+  rule_tune:"I decide what the AI is allowed to send.",
+  complex_case:"This case is mine from start to finish.",
+  coach_pair:"Teaching this makes me better at it too.",
+  leaving:{"Before AI":"Too much volume, not enough help.","Option A":"I don't use any of my skills anymore.","Option B":"Good place to grow. The offer was just too good."}
+};
+const CHANGES={
+  "Before AI":["No AI yet. Every letter and form is handled manually, end to end."],
+  "Option A":["AI auto-issues standard letters and forms","You only receive what the AI can't handle, in fragments","No say over the AI's rules, so non-standard cases go up to the Team Lead","Feedback is SLA and error counts, not your case results","Peer time cut to absorb exception volume"],
+  "Option B":["AI auto-issues standard letters and forms","You own exception cases end to end","You tune what the AI is allowed to auto-issue","Feedback on your own case outcomes and rule changes","Protected time for peer coaching"]
+};
+const LEAD_TEXT={
+  "Before AI":{task:"Running the weekly huddle and assigning cases",quote:"Busy, but everyone knows their cases.",label:"huddle"},
+  "Option A":{task:"Approving escalations that coordinators can't decide",quote:"Everything comes to me now.",label:"APPROVE"},
+  "Option B":{task:"Running case review and coaching",quote:"I review decisions, not paperwork.",label:"review"}
+};
+
+/* ================= Parity tests (v1 anchors) ================= */
+function runParity(){
+  const s=scoreAll(DEFAULTS,V1);const near=(x,y,t=0.01)=>Math.abs(x-y)<=t;const checks=[];
+  const ck=(name,ok)=>checks.push({name,ok:!!ok});
+  ck("Before MPS = 42",near(s["Before AI"].MPS,42));
+  ck("A MPS = 16",near(s["Option A"].MPS,16));
+  ck("B MPS = 192",near(s["Option B"].MPS,192));
+  ck("A Volume 3m = 83.45",near(s["Option A"].Volume_3m,83.45));
+  ck("B Volume 3m = 80.15",near(s["Option B"].Volume_3m,80.15));
+  ck("A Retention ≈ 78.13",near(s["Option A"].Retention,78.13));
+  ck("B Retention ≈ 29.04",near(s["Option B"].Retention,29.04));
+  ck("B Volume 12m ≈ 72.00",near(s["Option B"].Volume_12m,72.00));
+  ck("3m volume A > B",s["Option A"].Volume_3m>s["Option B"].Volume_3m);
+  ck("12m B beats A on volume, quality, motivation",s["Option B"].Volume_12m>s["Option A"].Volume_12m&&s["Option B"].Quality_12m>s["Option A"].Quality_12m&&s["Option B"].Motivation_12m>s["Option A"].Motivation_12m);
+  ck("12m B retention risk < A",s["Option B"].RetentionRisk_12m<s["Option A"].RetentionRisk_12m);
+  const cA=buildCast({scores:s,profile:"Option A",horizon:"12m",settings:V1});
+  const cB=buildCast({scores:s,profile:"Option B",horizon:"12m",settings:V1});
+  ck("A@12m door = +9",cA.leaveCount===9);
+  ck("B@12m door = +3",cB.leaveCount===3);
+  const cnt=(c,st)=>c.agents.filter(a=>a.status===st).length;
+  ck("B cast: ≥2 coach, ≥1 rule tune, 0 escalate",cnt(cB,"coach_pair")>=2&&cnt(cB,"rule_tune")>=1&&cnt(cB,"escalate")===0);
+  ck("B: 'tune auto-issue' only on rules",cB.agents.every(a=>a.chip!=="tune auto-issue"||a.zone==="rules")&&cB.agents.filter(a=>a.zone==="rules").every(a=>a.chip==="tune auto-issue"));
+  ck("A cast: firefight present, no coach",cnt(cA,"exception_firefight")>0&&cnt(cA,"coach_pair")===0);
+  for(const h of ["3m","12m"]){const c=buildCast({scores:s,profile:"Option B",horizon:h,settings:V1});
+    ck("B@"+h+" meeting never escalates",c.agents.filter(a=>a.zone==="meet").every(a=>bubbleLabelFor(a,"meet","Option B")!=="ESCALATE"));}
+  return checks;
+}
+
+/* ================= State ================= */
+const KEYS=[
+  ["SV","Skill variety","Range of skills the job uses","JCM"],
+  ["TI","Task identity","Does a whole, identifiable piece of work","JCM"],
+  ["TS","Task significance","Impact of the work on other people","JCM"],
+  ["Autonomy","Job autonomy","Discretion the job gives over how and when","JCM"],
+  ["Feedback","Feedback","Knows the results of own work","JCM"],
+  ["SDT_Autonomy","Felt autonomy","Feels volition and choice","SDT"],
+  ["SDT_Competence","Competence","Feels effective and growing","SDT"],
+  ["SDT_Relatedness","Relatedness","Feels connected to peers","SDT"]
+];
+const CONSTS=[
+  ["BASE_AI_CAPACITY","Base AI capacity","Volume floor from the AI layer"],
+  ["VOL_COEF_LOW_AUT","Volume per point of low autonomy","Extra throughput when the job gives less discretion"],
+  ["VOL_COEF_FB","Volume cost per feedback point","Time spent reviewing own results"],
+  ["BASE_AI_ACCURACY","Base AI accuracy","Quality floor from the AI layer"],
+  ["QUALITY_SPAN","Quality span","How much the human side can add to quality"],
+  ["W_Q_TI","Quality weight · Task identity","Quality weights should sum to 1"],
+  ["W_Q_FB","Quality weight · Feedback",""],
+  ["W_Q_COMP","Quality weight · Competence",""],
+  ["RR_3M_MULT","3-month retention multiplier","Share of 12-month risk already felt at 3 months"],
+  ["VOL_12M_EROSION","12-month volume erosion","Volume lost per unit of retention risk"],
+  ["LEAVE_DIVISOR","Door divisor","+N = round(retention risk ÷ this)"]
+];
+const ROLE={routine_desk:{"Before AI":"Letter & form processor","Option A":"Exception queue clerk","Option B":"Quality spot-checker"},
+  exception_firefight:"Exception firefighter",escalate:"Escalation runner",buffer_idle:"On standby",rule_tune:"AI rule tuner",
+  complex_case:"Case owner",coach_pair:"Peer coach",leaving:"Leaving the team"};
+const ROLE_DESC={routine_desk:{"Before AI":"Handles each request from intake to signed letter.","Option A":"Clears forms the AI flagged as incomplete.","Option B":"Samples the letters the AI sent, checking for errors."},
+  exception_firefight:"Gets only the cases the AI rejected, under SLA pressure.",escalate:"Can't decide unusual cases, so passes them to the Team Lead.",
+  buffer_idle:"Waits for the next exception to arrive.",rule_tune:"Decides what the AI may send on its own.",complex_case:"Owns complex cases from start to finish.",coach_pair:"Coaches colleagues on judgment calls."};
+const state={profile:"Option B",edit:"Option B",horizon:"12m",view:"office",metric:"Volume",inputs:JSON.parse(JSON.stringify(DEFAULTS)),settings:{...V1},paused:false};
+const NICK={"Before AI":"Before AI","Option A":"Automate only","Option B":"Automate + redesign"};
+const SHORTN={"Before AI":"Before AI","Option A":"Automate only","Option B":"Redesign"};
+const COL={"Before AI":"var(--before-fill)","Option A":"var(--a-fill)","Option B":"var(--b-fill)"};
+const f1=x=>(Math.round(x*100)/100).toFixed(2), f0=x=>(Math.round(x*10)/10).toFixed(1);
+const $=id=>document.getElementById(id);
+const METRICS=[["Volume","Volume","letters & forms handled",false],["Quality","Quality","accuracy of what goes out",false],["Motivation","Motivation","from JCM + SDT",false],["Retention","Retention risk","lower is better",true]];
+const kName=k=>KEYS.find(x=>x[0]===k)[1];
+
+/* ================= Model tab build ================= */
+function buildSliders(){
+  const host=$("sliders");host.innerHTML="";
+  for(const grp of ["JCM","SDT"]){
+    const g=document.createElement("div");g.className="sgroup";
+    g.innerHTML=`<span class="eyebrow">${grp==="JCM"?"Job Characteristics Model":"Self-Determination Theory"}</span>`;
+    for(const [k,label,hint,fw] of KEYS){ if(fw!==grp)continue;
+      const d=document.createElement("div");d.className="sl";
+      d.innerHTML=`<div class="sl-top"><label for="in-${k}">${label}</label><span class="v" id="v-${k}"></span></div><input type="range" id="in-${k}" min="1" max="7" step="0.5"><small>${hint}</small>`;
+      g.appendChild(d);
+      d.querySelector("input").addEventListener("input",e=>{state.inputs[state.edit][k]=parseFloat(e.target.value);update();});
+    }
+    host.appendChild(g);
+  }
+}
+function buildConsts(){
+  const host=$("consts");host.innerHTML="";
+  for(const [k,label,hint] of CONSTS){
+    const d=document.createElement("div");d.className="const";
+    d.innerHTML=`<label for="c-${k}">${label}</label><input id="c-${k}" type="number" step="any"><small>${hint||"&nbsp;"} · v1 ${V1[k]}</small>`;
+    host.appendChild(d);
+    d.querySelector("input").addEventListener("input",e=>{const v=parseFloat(e.target.value);if(Number.isFinite(v)&&!(k==="LEAVE_DIVISOR"&&v<=0)){state.settings[k]=v;update();}});
+  }
+}
+function syncControls(){
+  document.querySelectorAll(".dcard").forEach(b=>b.setAttribute("aria-pressed",b.dataset.p===state.profile));
+  document.querySelectorAll("#seg-edit button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.p===state.edit));
+  document.querySelectorAll("#seg-metric button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===state.metric));
+  document.querySelectorAll(".seg-h button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.h===state.horizon));
+  document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===state.view));
+  for(const v of ["office","dash","model"])$("view-"+v).hidden=state.view!==v;
+  document.body.dataset.edit=state.edit;
+  const p=state.inputs[state.edit];
+  for(const [k] of KEYS)$("in-"+k).value=p[k];
+  for(const [k] of CONSTS)$("c-"+k).value=state.settings[k];
+  $("w-jcm").value=state.settings.W_MOT_MPS;
+}
+const delta=(d,low,dec=1)=>{if(Math.abs(d)<0.05)return `<b>±0</b>`;const good=low?d<0:d>0;return `<b class="${good?"up":"dn"}">${d>0?"▲":"▼"}${Math.abs(d).toFixed(dec)}</b>`;};
+function leverFor(p,S,fw){
+  let best=[],bd=-1;const base=scoreProfile(p,S).Motivation;
+  for(const [k,,,f] of KEYS){if(f!==fw||p[k]>=7)continue;const d=scoreProfile({...p,[k]:Math.min(7,p[k]+1)},S).Motivation-base;
+    if(d>bd+1e-9){bd=d;best=[k];}else if(Math.abs(d-bd)<1e-9)best.push(k);}
+  return best.length?{keys:best,d:bd}:null;
+}
+
+function bestMove(p,S){let best=null;const base=scoreProfile(p,S).Motivation;
+  for(const [k] of KEYS){if(p[k]>=7)continue;const d=scoreProfile({...p,[k]:Math.min(7,p[k]+1)},S).Motivation-base;
+    if(!best||d>best.d+1e-9)best={keys:[k],d};else if(Math.abs(d-best.d)<1e-9)best.keys.push(k);}
+  return best;}
+const RM=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function countUp(root){if(RM)return;root.querySelectorAll("[data-count]").forEach(el=>{const to=+el.dataset.count,pre=el.dataset.prefix||"",dec=+(el.dataset.dec||1);const from=+(el.dataset.from||0);const t0=performance.now();
+  const step=now=>{const k=Math.min(1,(now-t0)/650);const e=1-Math.pow(1-k,3);el.textContent=pre+(from+(to-from)*e).toFixed(dec);if(k<1)requestAnimationFrame(step);};requestAnimationFrame(step);});}
+/* ================= Render ================= */
+function update(){
+  const S=state.settings, scores=scoreAll(state.inputs,S), prof=state.profile, h=state.horizon;
+  const at=pp=>atH(scores[pp],h);
+  const B0=at("Before AI"),A=at("Option A"),Bb=at("Option B");
+
+  /* Office: performance panel */
+  $("pm-title").textContent=NICK[prof];
+  const cur=at(prof);
+  const prevPm=window._pmPrev||{};
+  $("pm").innerHTML=METRICS.map(([k,l,sub,low])=>{
+    const v=cur[k],b=B0[k];
+    const d=prof==="Before AI"?`<span>Baseline, before any AI</span>`:`<span>${delta(v-b,low)} vs Before AI</span>`;
+    return `<div class="pm-row"><span class="l">${l}<small>${sub}</small></span><span class="v mono" style="color:${COL[prof]}" data-count="${v}" data-from="${prevPm[k]??v}">${v.toFixed(1)}</span>
+      <div class="pm-track"><i style="width:${Math.max(0,Math.min(100,v))}%;background:${COL[prof]}"></i>${prof==="Before AI"?"":`<s style="left:${Math.max(0,Math.min(100,b))}%" title="Before AI"></s>`}</div>
+      <div class="d">${d}</div></div>`;}).join("");
+  window._pmPrev=Object.fromEntries(METRICS.map(([k])=>[k,cur[k]]));
+  countUp($("pm"));
+  const wins=(k,low)=>low?(Bb[k]<A[k]?"B":"A"):(Bb[k]>A[k]?"B":"A");
+  const aW=METRICS.filter(([k,,,low])=>wins(k,low)==="A").map(m=>m[1].toLowerCase()), bW=METRICS.filter(([k,,,low])=>wins(k,low)==="B").map(m=>m[1].toLowerCase());
+  $("verdict").innerHTML=`<strong>At ${h==="3m"?"3 months":"12 months"}</strong>`+
+    (aW.length?`<span><b style="color:var(--a)">Automate only</b> leads on ${aW.join(", ")}.</span>`:"")+
+    (bW.length?`<span><b style="color:var(--b)">Redesign</b> leads on ${bW.join(", ")}.</span>`:"")+
+    (h==="3m"?`<span class="muted">Switch to 12 months to see what happens next.</span>`:"");
+
+  /* Dashboard: headline */
+  const diffs=METRICS.map(([k,l,,low])=>{const d=Bb[k]-A[k];return {k,l,low,d,bWins:low?d<0:d>0};});
+  const bCount=diffs.filter(x=>x.bWins).length;
+  let hl;
+  if(bCount===4)hl=`At ${h==="3m"?"3":"12"} months, <span class="b">redesign beats automate only on all 4 outcomes.</span>`;
+  else if(bCount===0)hl=`At ${h==="3m"?"3":"12"} months, <span class="a">automate only leads on every outcome.</span>`;
+  else{const aw=diffs.filter(x=>!x.bWins).map(x=>x.l.toLowerCase());hl=`At ${h==="3m"?"3":"12"} months, <span class="a">automate only still leads on ${aw.join(" and ")}</span>, but <span class="b">redesign wins the other ${bCount}.</span>`;}
+  const hEl=$("headline");hEl.classList.toggle("awin",bCount<2);
+  hEl.innerHTML=`<span class="eyebrow">The answer · Redesign vs Automate only</span><div class="hl">${hl}</div><div class="tiles">${diffs.map(x=>{
+      const w=x.bWins?"b":"a";const who=x.bWins?"Redesign":"Automate only";
+      return `<div class="tile"><b class="who" style="color:var(--${w})">${who} wins</b><span class="big ${w} mono" data-count="${Math.abs(x.d)}" data-prefix="${x.low?(x.bWins?"−":"+"):"+"}">${x.low?(x.bWins?"−":"+"):"+"}${Math.abs(x.d).toFixed(1)}</span><span>${x.l.toLowerCase()}${x.low?" (lower is better)":""}</span></div>`;}).join("")}</div>`;
+  countUp(hEl);
+
+  /* Dashboard: slope chart over time */
+  const mk=state.metric, mlow=mk==="Retention", mlabel=METRICS.find(m=>m[0]===mk)[1];
+  const vals=PROFILES.map(pp=>({pp,v3:atH(scores[pp],"3m")[mk],v12:atH(scores[pp],"12m")[mk]}));
+  const all=vals.flatMap(o=>[o.v3,o.v12]);let lo=Math.min(...all),hi=Math.max(...all);const pad=Math.max(4,(hi-lo)*0.15);lo=Math.max(0,Math.floor((lo-pad)/5)*5);hi=Math.min(100,Math.ceil((hi+pad)/5)*5);
+  const W=520,H=280,x0=150,x1=370,yT=24,yB=H-36,ys=v=>yB-(v-lo)/(hi-lo)*(yB-yT);
+  let svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${mlabel} at 3 and 12 months for each design">`;
+  for(let g=lo;g<=hi;g+=(hi-lo)>40?20:10){svg+=`<line x1="34" x2="${x1+20}" y1="${ys(g)}" y2="${ys(g)}" stroke="var(--line)" stroke-width="1"/><text class="svg-t" x="0" y="${ys(g)+4}">${g}</text>`;}
+  svg+=`<text class="svg-t" x="${x0}" y="${H-10}" text-anchor="middle" font-weight="700">3 months</text><text class="svg-t" x="${x1}" y="${H-10}" text-anchor="middle" font-weight="700">12 months</text>`;
+  const colHex={"Before AI":"#94A3B8","Option A":"#F59E0B","Option B":"#3B82F6"};
+  // label de-collision on the right
+  const right=vals.map(o=>({pp:o.pp,y:ys(o.v12),v:o.v12})).sort((a,b)=>a.y-b.y);for(let i=1;i<right.length;i++)if(right[i].y-right[i-1].y<18)right[i].y=right[i-1].y+18;
+  const left=vals.map(o=>({pp:o.pp,y:ys(o.v3),v:o.v3})).sort((a,b)=>a.y-b.y);for(let i=1;i<left.length;i++)if(left[i].y-left[i-1].y<18)left[i].y=left[i-1].y+18;
+  for(const o of vals){const sw=o.pp===state.profile?4:2.5;const op=o.pp==="Before AI"?0.7:1;
+    svg+=`<line x1="${x0}" y1="${ys(o.v3)}" x2="${x1}" y2="${ys(o.v12)}" stroke="${colHex[o.pp]}" stroke-width="${sw}" stroke-linecap="round" opacity="${op}" ${o.pp==="Before AI"?'stroke-dasharray="6 5"':""}/>
+      <circle cx="${x0}" cy="${ys(o.v3)}" r="6" fill="${colHex[o.pp]}"/><circle cx="${x1}" cy="${ys(o.v12)}" r="6" fill="${colHex[o.pp]}"/>`;}
+  for(const r of right)svg+=`<text class="svg-v" x="${x1+14}" y="${r.y+4}" fill="${colHex[r.pp]}">${r.v.toFixed(1)}</text><text class="svg-l" x="${x1+58}" y="${r.y+4}">${SHORTN[r.pp]}</text>`;
+  for(const r of left)svg+=`<text class="svg-v" x="${x0-14}" y="${r.y+4}" fill="${colHex[r.pp]}" text-anchor="end">${r.v.toFixed(1)}</text>`;
+  $("slope").innerHTML=svg+"</svg>";
+  const a3v=vals[1].v3,b3v=vals[2].v3,a12v=vals[1].v12,b12v=vals[2].v12;
+  const lead3=mlow?(a3v<b3v?"A":"B"):(a3v>b3v?"A":"B"),lead12=mlow?(a12v<b12v?"A":"B"):(a12v>b12v?"A":"B");
+  $("slope-note").textContent=mk==="Quality"||mk==="Motivation"?`${mlabel} is set by the job design, so it stays the same over time in this model.`:
+    (lead3!==lead12?`The lines cross: automate only leads on ${mlabel.toLowerCase()} at 3 months, then falls behind as people leave.`:`Redesign leads on ${mlabel.toLowerCase()} at both points, and the gap ${Math.abs(b12v-a12v)>Math.abs(b3v-a3v)?"widens":"holds"} by 12 months.`);
+
+  /* Dashboard: dumbbell of the 8 characteristics */
+  const ib=state.inputs["Before AI"],ia=state.inputs["Option A"],ix=state.inputs["Option B"];
+  {const RW=520,lx=150,rx=500,rh=30,top=50,xs=v=>lx+(v-1)/6*(rx-lx);let d=`<svg viewBox="0 0 ${RW} ${top+KEYS.length*rh+34}" role="img" aria-label="JCM and SDT scores for the three designs">`;
+    for(let v=1;v<=7;v++)d+=`<text class="svg-t" x="${xs(v)}" y="12" text-anchor="middle">${v}</text>`;
+    KEYS.forEach(([k,l,,f],i)=>{const y=top+i*rh+(f==="SDT"?14:0)+10;
+      if(i===5)d+=`<text class="svg-t" x="0" y="${y-18}" font-size="11" font-weight="700" letter-spacing="1">SDT · HOW PEOPLE FEEL</text>`;
+      if(i===0)d+=`<text class="svg-t" x="0" y="${y-14}" font-size="11" font-weight="700" letter-spacing="1">JCM · WHAT THE JOB OFFERS</text>`;
+      const va=ia[k],vb=ix[k],v0=ib[k];
+      d+=`<text class="svg-l" x="0" y="${y+4}">${l}</text><line x1="${lx}" x2="${rx}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-width="6" stroke-linecap="round"/>`;
+      d+=`<line x1="${xs(Math.min(va,vb))}" x2="${xs(Math.max(va,vb))}" y1="${y}" y2="${y}" stroke="var(--muted)" stroke-width="2" opacity=".5"/>`;
+      d+=`<circle cx="${xs(v0)}" cy="${y}" r="5" fill="none" stroke="#94A3B8" stroke-width="2.5"/><circle cx="${xs(va)}" cy="${y}" r="7" fill="#F59E0B"/><circle cx="${xs(vb)}" cy="${y}" r="7" fill="#3B82F6"/>`;});
+    const ly=top+KEYS.length*rh+28;
+    d+=`<circle cx="${lx}" cy="${ly-4}" r="5" fill="none" stroke="#94A3B8" stroke-width="2.5"/><text class="svg-t" x="${lx+10}" y="${ly}">Before AI</text><circle cx="${lx+100}" cy="${ly-4}" r="7" fill="#F59E0B"/><text class="svg-t" x="${lx+112}" y="${ly}">Automate only</text><circle cx="${lx+232}" cy="${ly-4}" r="7" fill="#3B82F6"/><text class="svg-t" x="${lx+244}" y="${ly}">Redesign</text>`;
+    $("dumbbell").innerHTML=d+"</svg>";}
+
+  /* Dashboard: diagnosis (A and B) */
+  $("diag").innerHTML=["Option A","Option B"].map(pp=>{
+    const p=state.inputs[pp];
+    const best=bestMove(p,S);
+    const strong=KEYS.map(x=>x[0]).filter(k=>p[k]>=5).sort((x,y)=>p[y]-p[x]).slice(0,3);
+    const weak=KEYS.map(x=>x[0]).filter(k=>p[k]<5).sort((x,y)=>p[x]-p[y]).slice(0,3);
+    const li=k=>`<li><span>${kName(k)}</span><b>${p[k]}</b></li>`;
+    return `<div class="card dg ${pp==="Option B"?"b":""}"><h3>${NICK[pp]}</h3>
+      <div class="move"><small>Best next move</small>${best?`Raise <b>${best.keys.map(kName).join(" or ")}</b> by 1 point → motivation <b class="up">+${best.d.toFixed(1)}</b>, retention risk <b class="up">−${best.d.toFixed(1)}</b>`:"Every characteristic is already at 7."}</div>
+      <div class="cols"><div><span class="lab ok">Working well</span><ul>${strong.length?strong.map(li).join(""):'<li class="muted">Nothing at 5 or above</li>'}</ul></div>
+      <div><span class="lab bad">Fix first</span><ul>${weak.length?weak.map(li).join(""):'<li class="muted">Nothing below 5</li>'}</ul></div></div></div>`;}).join("");
+
+  /* Dashboard: all numbers (collapsed) */
+  $("mps").innerHTML=PROFILES.map(pp=>`<div><span>${SHORTN[pp]} · Motivating Potential Score</span><b class="mono" style="color:${COL[pp]}">${Math.round(scores[pp].MPS)}</b><span>out of 343</span></div>`).join("");
+  const a3=atH(scores["Option A"],"3m"),b3=atH(scores["Option B"],"3m"),a12=atH(scores["Option A"],"12m"),b12=atH(scores["Option B"],"12m");
+  const cell=(a,b,low,w)=>{const v=w==="a"?a:b;const win=low?(w==="a"?a<b:b<a):(w==="a"?a>b:b>a);return `<td class="${win?"win "+w:""}">${v.toFixed(1)}</td>`;};
+  let t=`<thead><tr><th>Outcome</th><th>Automate only · 3m</th><th>Redesign · 3m</th><th>Automate only · 12m</th><th>Redesign · 12m</th></tr></thead><tbody>`;
+  for(const [k,l,,low] of METRICS)t+=`<tr><td>${l}</td>${cell(a3[k],b3[k],low,"a")}${cell(a3[k],b3[k],low,"b")}${cell(a12[k],b12[k],low,"a")}${cell(a12[k],b12[k],low,"b")}</tr>`;
+  $("xtab").innerHTML=t+"</tbody>";
+  const dd=d=>`<em class="${d>0?"up":d<0?"dn":"muted"}">${d>0?"+"+d:d<0?"−"+Math.abs(d):"0"}</em>`;
+  let pt=`<thead><tr><th>Characteristic</th><th>Before AI</th><th>Automate only</th><th>Δ</th><th>Redesign</th><th>Δ</th></tr></thead><tbody>`;
+  for(const [k,l] of KEYS)pt+=`<tr><td>${l}</td><td>${ib[k]}</td><td>${ia[k]}</td><td>${dd(ia[k]-ib[k])}</td><td>${ix[k]}</td><td>${dd(ix[k]-ib[k])}</td></tr>`;
+  $("prof").innerHTML=pt+"</tbody>";
+
+  /* Model tab */
+  const ep=state.edit,p=state.inputs[ep],r=scores[ep];
+  for(const [k] of KEYS){const el=$("v-"+k);el.textContent=(+p[k]).toFixed(1).replace(".0","");el.classList.toggle("edited",p[k]!==DEFAULTS[ep][k]);}
+  for(const [k] of CONSTS)$("c-"+k).classList.toggle("edited",S[k]!==V1[k]);
+  const an=$("aut-note");
+  if(p.Autonomy===p.SDT_Autonomy){an.hidden=false;an.textContent=`Job autonomy and felt autonomy are both ${p.Autonomy}, so autonomy counts twice (in MPS and in SDT). That is the v1 default. With real data, measure each with its own scale.`;}else an.hidden=true;
+  $("w-jcm-v").textContent=Math.round(S.W_MOT_MPS*100)+"%";$("w-a").textContent=S.W_MOT_MPS.toFixed(2);$("w-b").textContent=S.W_MOT_SDT.toFixed(2);
+  const setEdited=Object.keys(V1).some(k=>Math.abs(S[k]-V1[k])>1e-12);
+  const inEdited=PROFILES.some(pp=>KEYS.some(([k])=>state.inputs[pp][k]!==DEFAULTS[pp][k]));
+  const ps=$("pill-settings");ps.classList.toggle("custom",setEdited);ps.lastElementChild.textContent=setEdited?"Model: custom settings":"Model: v1 settings";
+  const pi=$("pill-inputs");pi.classList.toggle("custom",inEdited);pi.lastElementChild.textContent=inEdited?"Inputs: edited":"Inputs: v1 defaults";
+  $("calc-title").textContent=SHORTN[ep]+", step by step";
+  $("calc").innerHTML=[
+    `<div class="r"><span class="k">Core JCM</span> = (SV ${p.SV} + TI ${p.TI} + TS ${p.TS}) / 3 = <b>${f1(r.coreJcm)}</b></div>`,
+    `<div class="r"><span class="k">MPS</span> = ${f1(r.coreJcm)} × Autonomy ${p.Autonomy} × Feedback ${p.Feedback} = <b>${f0(r.MPS)}</b> <span class="k">/ 343 = ${f1(r.MPS_norm)}</span></div>`,
+    `<div class="r"><span class="k">SDT</span> = (${p.SDT_Autonomy} + ${p.SDT_Competence} + ${p.SDT_Relatedness}) / 3 = <b>${f1(r.SDT)}</b> <span class="k">/ 7 = ${f1(r.SDT_norm)}</span></div>`,
+    `<div class="r"><span class="k">Motivation</span> = 100 × (${S.W_MOT_MPS.toFixed(2)} × ${f1(r.MPS_norm)} + ${S.W_MOT_SDT.toFixed(2)} × ${f1(r.SDT_norm)}) = <b>${f1(r.Motivation)}</b></div>`,
+    `<div class="r"><span class="k">Retention risk</span> = 100 − ${f1(r.Motivation)} = <b>${f1(r.Retention)}</b> <span class="k">· 3m × ${S.RR_3M_MULT} = ${f1(r.RetentionRisk_3m)}</span></div>`,
+    `<div class="r"><span class="k">Volume</span> = ${S.BASE_AI_CAPACITY} + ${S.VOL_COEF_LOW_AUT} × (7 − ${p.Autonomy}) − ${S.VOL_COEF_FB} × ${p.Feedback} = <b>${f1(r.Volume)}</b></div>`,
+    `<div class="r"><span class="k">Volume 12m</span> = ${f1(r.Volume)} × (1 − ${S.VOL_12M_EROSION} × ${f1(r.Retention)}/100) = <b>${f1(r.Volume_12m)}</b></div>`,
+    `<div class="r"><span class="k">Quality</span> = ${S.BASE_AI_ACCURACY} + ${S.QUALITY_SPAN} × (${S.W_Q_TI}×${p.TI}/7 + ${S.W_Q_FB}×${p.Feedback}/7 + ${S.W_Q_COMP}×${p.SDT_Competence}/7) = <b>${f1(r.Quality)}</b></div>`
+  ].join("");
+
+  /* Scene */
+  const cast=buildCast({scores,profile:prof,horizon:h,settings:S});
+  $("door-n").textContent="+"+cast.leaveCount+" left work";
+  $("door-cap").textContent=`turnover pressure from retention risk ${cur.Retention.toFixed(1)} · illustrative, not a headcount`;
+  if(window.Office)Office.setCast(cast,prof,h,scores[prof],scores);
+}
+
+/* ================= Events ================= */
+document.querySelectorAll(".dcard").forEach(b=>b.addEventListener("click",()=>{state.profile=b.dataset.p;state.edit=b.dataset.p;syncControls();update();}));
+document.querySelectorAll("#seg-metric button").forEach(b=>b.addEventListener("click",()=>{state.metric=b.dataset.m;syncControls();update();}));
+document.querySelectorAll("#seg-edit button").forEach(b=>b.addEventListener("click",()=>{state.edit=b.dataset.p;syncControls();update();}));
+document.querySelectorAll(".seg-h button").forEach(b=>b.addEventListener("click",()=>{state.horizon=b.dataset.h;syncControls();update();}));
+function goView(v){state.view=v;syncControls();window.scrollTo({top:0,behavior:"smooth"});if(v==="office")window.dispatchEvent(new Event("resize"));}
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>goView(b.dataset.view)));
+document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>goView(b.dataset.goto)));
+$("btn-reset-prof").addEventListener("click",()=>{state.inputs[state.edit]={...DEFAULTS[state.edit]};syncControls();update();});
+$("btn-reset-set").addEventListener("click",()=>{state.settings={...V1};syncControls();update();});
+$("w-jcm").addEventListener("input",e=>{const w=parseFloat(e.target.value);state.settings.W_MOT_MPS=w;state.settings.W_MOT_SDT=Math.round((1-w)*100)/100;update();});
+$("btn-copy").addEventListener("click",()=>{
+  const json=JSON.stringify({version:"wds-vnext-1",profile:state.profile,horizon:state.horizon,settings:state.settings,inputs:state.inputs},null,1);
+  const ta=$("scn-in");const fb=()=>{ta.value=json;ta.select();$("copy-msg").textContent="The scenario is in the box below, selected. Copy it from there.";};
+  if(navigator.clipboard)navigator.clipboard.writeText(json).then(()=>{$("copy-msg").textContent="Copied.";},fb);else fb();
+});
+$("btn-load").addEventListener("click",()=>{
+  const msg=$("load-msg");
+  try{
+    const o=JSON.parse($("scn-in").value);
+    if(!o||!o.inputs||!o.settings)throw new Error("missing inputs or settings");
+    for(const pp of PROFILES)for(const [k] of KEYS){const v=+o.inputs?.[pp]?.[k];if(!(v>=1&&v<=7))throw new Error(`${pp} ${k} must be between 1 and 7`);}
+    const ns={...V1};for(const k of Object.keys(V1)){if(o.settings[k]!==undefined){const v=+o.settings[k];if(!Number.isFinite(v))throw new Error(k+" is not a number");ns[k]=v;}}
+    if(ns.LEAVE_DIVISOR<=0)throw new Error("LEAVE_DIVISOR must be above 0");
+    state.settings=ns;
+    for(const pp of PROFILES){state.inputs[pp]={};for(const [k] of KEYS)state.inputs[pp][k]=+o.inputs[pp][k];}
+    if(PROFILES.includes(o.profile))state.profile=state.edit=o.profile;
+    if(o.horizon==="3m"||o.horizon==="12m")state.horizon=o.horizon;
+    syncControls();update();msg.textContent="Scenario loaded.";
+  }catch(err){msg.textContent="Could not load: "+err.message+". Paste the full text from Copy scenario.";}
+});
+
+/* ================= Intro ================= */
+const INTRO=[
+  `<h2 id="intro-title">Hi, I'm Mei!</h2><p>I lead the HR Operations team here. Welcome to the <b>Work Design Simulator</b>, a small world where you can test how AI changes my team's jobs.</p>`,
+  `<h2>What my team does</h2><p>We handle employee letters and forms: onboarding packs, contract changes, leave and benefits forms. Now an <b>AI sends the standard ones automatically</b>.</p>`,
+  `<h2>The real question</h2><p>The AI is the same either way. So what should my team's jobs become?</p><div class="opt"><div class="oa"><b>Automate only</b>They just handle whatever the AI can't.</div><div class="ob"><b>Automate + redesign</b>They own the tricky cases, tune the AI and coach each other.</div></div>`,
+  `<h2>How we measure it</h2><p>Two psychology frameworks score each job:</p><div class="opt"><div class="of"><b>Job Characteristics Model</b>What the job offers</div><div class="of"><b>Self-Determination Theory</b>How people feel</div></div><p>Then we predict <b>volume, quality, motivation and retention risk</b> at 3 and 12 months.</p>`,
+  `<h2>Your turn</h2><p>Switch between the three designs, <b>tap anyone on my team</b> to see how their job changed, and open the <b>Dashboard</b> for the full comparison.</p>`
+];
+let introStep=0;
+function renderIntro(){
+  $("intro-body").innerHTML=INTRO[introStep];
+  $("intro-dots").innerHTML=INTRO.map((_,i)=>`<i class="${i===introStep?"on":""}"></i>`).join("");
+  $("intro-back").hidden=introStep===0;
+  $("intro-next").textContent=introStep===INTRO.length-1?"Start exploring":"Next";
+}
+function openIntro(){introStep=0;renderIntro();$("intro").hidden=false;$("intro-next").focus();}
+function closeIntro(){$("intro").hidden=true;try{localStorage.setItem("wds-intro-seen","1");}catch(e){}}
+$("intro-next").addEventListener("click",()=>{if(introStep<INTRO.length-1){introStep++;renderIntro();}else closeIntro();});
+$("intro-back").addEventListener("click",()=>{if(introStep>0){introStep--;renderIntro();}});
+$("intro-skip").addEventListener("click",closeIntro);
+$("btn-intro").addEventListener("click",openIntro);
+document.addEventListener("keydown",e=>{if($("intro").hidden)return;if(e.key==="Escape")closeIntro();if(e.key==="ArrowRight")$("intro-next").click();if(e.key==="ArrowLeft")$("intro-back").click();});
+new MutationObserver(()=>{if(!$("pcard").hidden)$("tap-hint").style.opacity=0;}).observe($("pcard"),{attributes:true,attributeFilter:["hidden"]});
+/* ================= 3D office ================= */
+const Office=(function(){
+  const host=$("scene"), overlay=$("overlay");
+  if(typeof THREE==="undefined"){host.innerHTML='<p class="nogl">The 3D library did not load. Scores and inputs still work.</p>';return null;}
+  let renderer;
+  try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});}catch(e){host.innerHTML='<p class="nogl">This device cannot show 3D (WebGL is off). Scores and inputs still work.</p>';return null;}
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  host.appendChild(renderer.domElement);
+  const scene=new THREE.Scene();
+  const cam=new THREE.OrthographicCamera(-10,10,6,-6,0.1,200);
+  const HOME_POS=new THREE.Vector3(19,18,19), TARGET=new THREE.Vector3(-0.6,0,0.2);
+  cam.position.copy(HOME_POS);cam.lookAt(TARGET);
+  let controls=null;
+  if(THREE.OrbitControls){controls=new THREE.OrbitControls(cam,renderer.domElement);controls.target.copy(TARGET);controls.enablePan=false;
+    controls.minZoom=0.75;controls.maxZoom=3;controls.minPolarAngle=0.45;controls.maxPolarAngle=1.2;controls.enableDamping=true;controls.dampingFactor=0.08;controls.update();}
+  function readBg(){const c=getComputedStyle(document.documentElement).getPropertyValue("--stage").trim()||"#D9E2EB";scene.background=new THREE.Color(c);}
+  readBg();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",readBg);
+  new MutationObserver(readBg).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+
+  scene.add(new THREE.HemisphereLight(0xffffff,0xb8c4d4,0.78));
+  const sun=new THREE.DirectionalLight(0xffffff,0.7);sun.position.set(8,16,10);sun.castShadow=true;
+  sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-14,right:14,top:12,bottom:-12,near:1,far:50});sun.shadow.bias=-0.0008;
+  scene.add(sun);
+
+  const mat=(c,o={})=>new THREE.MeshStandardMaterial({color:c,roughness:0.8,metalness:0.02,...o});
+  const box=(w,h,d,m,x,y,z,parent=scene,shadow=true)=>{const me=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);me.position.set(x,y,z);me.castShadow=shadow;me.receiveShadow=true;parent.add(me);return me;};
+  const W=22,D=16;
+  const floor=new THREE.Mesh(new THREE.PlaneGeometry(W,D),mat(0xE8EEF4));floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);
+  const wallM=mat(0xB8C4D4);
+  box(W,3,0.2,wallM,0,1.5,-D/2,scene,false);
+  box(0.2,3,D,wallM,-W/2,1.5,0,scene,false);
+  box(W,0.12,0.24,mat(0x9AA8BA),0,3.02,-D/2,scene,false);
+  // "HR Operations" wall sign
+  (function(){const cv=document.createElement("canvas");cv.width=512;cv.height=96;const x=cv.getContext("2d");x.fillStyle="#334155";x.fillRect(0,0,512,96);
+    x.fillStyle="#F8FAFC";x.font="600 44px Bricolage Grotesque, Segoe UI, sans-serif";x.textBaseline="middle";x.fillText("HR Operations",28,50);
+    const tx=new THREE.CanvasTexture(cv);const m=new THREE.Mesh(new THREE.PlaneGeometry(3.2,0.6),new THREE.MeshBasicMaterial({map:tx}));m.position.set(-1.6,2.45,-7.88);scene.add(m);})();
+  function pad(w,d,x,z,color,op){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({color,transparent:true,opacity:op,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(x,0.01,z);scene.add(m);return m;}
+  const deskPad=pad(8.4,6.6,-4,0.8,0xF59E0B,0);
+  const rulesPad=pad(4.6,2.2,5.7,-6.7,0x3B82F6,0);
+  const loungePad=pad(4.4,3.8,6.5,4.6,0x3B82F6,0);
+  const meetPad=pad(4.4,4.2,6.5,-1.5,0xF59E0B,0);
+
+  // 6 desks (2 rows × 3), one per coordinator
+  const DESK_X=[-6.5,-4,-1.5], DESK_Z=[-1.6,2.2];
+  const deskSeats=[];
+  const woodM=mat(0xD7C3A3), legM=mat(0x6B7280), chairM=mat(0x334155), screenM=mat(0x111827), glowM=new THREE.MeshBasicMaterial({color:0x93C5FD});
+  for(const z of DESK_Z)for(const x of DESK_X){
+    box(1.8,0.08,0.9,woodM,x,0.75,z);
+    for(const [lx,lz] of [[-0.82,-0.38],[0.82,-0.38],[-0.82,0.38],[0.82,0.38]])box(0.06,0.72,0.06,legM,x+lx,0.37,z+lz,scene,false);
+    box(0.7,0.42,0.05,screenM,x,1.06,z-0.25);
+    box(0.62,0.34,0.01,glowM,x,1.06,z-0.22,scene,false);
+    box(0.5,0.03,0.18,mat(0x374151),x,0.8,z+0.05,scene,false);
+    for(let k=0;k<3;k++)box(0.3,0.02,0.4,mat(0xFFFFFF),x+0.6,0.8+k*0.025,z+0.1,scene,false);
+    const cz=z+0.95;box(0.5,0.08,0.5,chairM,x,0.46,cz);box(0.5,0.5,0.07,chairM,x,0.74,cz+0.24);box(0.06,0.42,0.06,legM,x,0.22,cz,scene,false);
+    deskSeats.push({x,z:cz,face:Math.PI,seat:true,zone:"desks",desk:{x,z}});
+  }
+  // AI console
+  box(2.4,1.3,1.0,mat(0x1F2937),-8.4,0.65,-6.9);
+  const aiScreen=new THREE.Mesh(new THREE.PlaneGeometry(2.0,0.9),new THREE.MeshBasicMaterial({color:0x22D3EE}));aiScreen.position.set(-8.4,1.95,-7.38);scene.add(aiScreen);
+  box(2.2,1.0,0.08,mat(0x0F172A),-8.4,1.95,-7.45,scene,false);
+  const aiLight=new THREE.PointLight(0x22D3EE,0.6,6);aiLight.position.set(-8.4,2,-6.2);scene.add(aiLight);
+  // outbox / printer
+  box(1.2,0.9,0.7,mat(0x94A3B8),-5.6,0.45,-7.2);
+  box(1.0,0.1,0.55,mat(0xF8FAFC),-5.6,0.95,-7.2);
+  // rules board
+  box(3.6,1.8,0.08,mat(0x475569),5.7,1.75,-7.85,scene,false);
+  const boardM=new THREE.MeshStandardMaterial({color:0xE2E8F0,emissive:0x1D4ED8,emissiveIntensity:0});
+  const board=new THREE.Mesh(new THREE.PlaneGeometry(3.3,1.55),boardM);board.position.set(5.7,1.75,-7.79);scene.add(board);
+  const ruleCards=[];for(let i=0;i<6;i++){const c=new THREE.Mesh(new THREE.PlaneGeometry(0.75,0.42),new THREE.MeshBasicMaterial({color:0xCBD5E1}));c.position.set(4.6+(i%3)*1.1,2.1-Math.floor(i/3)*0.62,-7.76);scene.add(c);ruleCards.push(c);}
+  const rulesLight=new THREE.PointLight(0x60A5FA,0,7);rulesLight.position.set(5.7,2.4,-6.4);scene.add(rulesLight);
+  // meeting
+  const mt=new THREE.Mesh(new THREE.CylinderGeometry(1.15,1.15,0.07,32),woodM);mt.position.set(6.5,0.75,-1.5);mt.castShadow=true;mt.receiveShadow=true;scene.add(mt);
+  const mtl=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.25,0.72,12),legM);mtl.position.set(6.5,0.36,-1.5);scene.add(mtl);
+  // lounge
+  const sofaM=mat(0x64748B);
+  box(2.8,0.42,0.9,sofaM,6.5,0.3,5.9);box(2.8,0.6,0.25,sofaM,6.5,0.7,6.3);box(0.25,0.55,0.9,sofaM,5.0,0.4,5.9);box(0.25,0.55,0.9,sofaM,8.0,0.4,5.9);
+  box(1.2,0.08,0.7,woodM,6.5,0.42,4.5);box(0.08,0.38,0.08,legM,6.5,0.2,4.5,scene,false);
+  const mug=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.06,0.14,10),mat(0xF8FAFC));mug.position.set(6.3,0.53,4.5);scene.add(mug);
+  // decor
+  function plant(x,z){const p=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.18,0.4,12),mat(0xA3A3A3));p.position.set(x,0.2,z);scene.add(p);
+    const l=new THREE.Mesh(new THREE.IcosahedronGeometry(0.42,0),mat(0x4D7C5B,{flatShading:true}));l.position.set(x,0.8,z);l.castShadow=true;scene.add(l);}
+  plant(-10.2,-7.2);plant(9.6,-7.1);plant(9.6,7);plant(2.4,-7.2);plant(0.6,5);
+  box(1.6,2.0,0.45,mat(0x8B6F4E),-3.4,1.0,-7.6);
+  for(let i=0;i<3;i++)box(1.4,0.05,0.4,mat(0x6B5640),-3.4,0.5+i*0.55,-7.55,scene,false);
+  box(0.9,1.3,0.6,mat(0x9CA3AF),0.4,0.65,-7.4); // filing cabinet
+  // door
+  box(0.12,2.3,1.5,mat(0x7C5E3C),-10.94,1.15,5.2,scene,false);
+  box(0.16,2.45,0.12,mat(0x475569),-10.92,1.22,4.42,scene,false);box(0.16,2.45,0.12,mat(0x475569),-10.92,1.22,5.98,scene,false);
+  const exitSign=new THREE.Mesh(new THREE.PlaneGeometry(0.9,0.3),new THREE.MeshBasicMaterial({color:0x16A34A}));exitSign.position.set(-10.86,2.65,5.2);exitSign.rotation.y=Math.PI/2;scene.add(exitSign);
+
+  const SPOTS={
+    ai:[{x:-8.9,z:-5.7,face:Math.PI,zone:"ai"},{x:-7.7,z:-5.8,face:Math.PI,zone:"ai"}],
+    rules:[{x:4.8,z:-6.6,face:Math.PI,zone:"rules"},{x:6.0,z:-6.5,face:Math.PI,zone:"rules"},{x:7.1,z:-6.6,face:Math.PI,zone:"rules"}],
+    meet:[0,1,2,3,4].map(i=>{const a=-Math.PI*0.5+i*Math.PI*0.42;return {x:6.5+Math.cos(a)*1.55,z:-1.5+Math.sin(a)*1.55,zone:"meet",look:{x:6.5,z:-1.5}};}),
+    lounge:[{x:5.9,z:5.75,face:Math.PI,seat:true,zone:"lounge",sy:0.0},{x:7.1,z:5.75,face:Math.PI,seat:true,zone:"lounge",sy:0.0},{x:6.5,z:3.4,face:0,zone:"lounge"}],
+    exit:[{x:-10.3,z:5.2,zone:"exit"}],
+    outbox:[{x:-5.6,z:-6.35,face:Math.PI,zone:"outbox"}]
+  };
+
+  /* ---------- Mini people (chibi proportions: big head, short body) ---------- */
+  const SKIN=[0xF1C9A5,0xD9A27E,0xB57E57,0xE8B894,0x8D5A3B,0xF0C08F];
+  const HAIR=[0x2B2118,0x111111,0x5B3A24,0x1F1A17,0x3F3F46,0x8B5A2B];
+  const SHIRTS={"Before AI":[0x64748B,0x7C8794,0x4B6B6B,0x94A3B8,0x5A6B7D,0x6E7F91],
+    "Option A":[0xF59E0B,0xEA580C,0xD97706,0xFB923C,0xF97316,0xE88A1A],
+    "Option B":[0x3B82F6,0x1D4ED8,0x60A5FA,0x2563EB,0x4F7DF3,0x3268E0]};
+  const LONG_HAIR=[true,false,true,true,false,true];
+  function makeHuman(i,profile,isLead){
+    const g=new THREE.Group();
+    const shirt=isLead?0x0F766E:SHIRTS[profile][i%6], skin=isLead?0xE8B894:SKIN[i%6], hair=isLead?0x1F1A17:HAIR[i%6];
+    const pantsM=mat(isLead?0x1E293B:0x334155),shirtM=mat(shirt),skinM=mat(skin),hairM=mat(hair,{roughness:0.6});
+    const legs=[];for(const s of [-1,1]){const pv=new THREE.Group();pv.position.set(0.1*s,0.4,0);
+      const l=new THREE.Mesh(new THREE.BoxGeometry(0.15,0.36,0.17),pantsM);l.position.y=-0.18;l.castShadow=true;pv.add(l);
+      const shoe=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.07,0.24),mat(0x1F2937));shoe.position.set(0,-0.37,0.04);pv.add(shoe);g.add(pv);legs.push(pv);}
+    const torso=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.24,0.46,16),shirtM);torso.position.y=0.62;torso.castShadow=true;g.add(torso);
+    if(isLead){const lan=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.13,0.02),mat(0xF8FAFC));lan.position.set(0,0.6,0.24);g.add(lan);}
+    const headG=new THREE.Group();headG.position.y=0.84;g.add(headG);
+    const head=new THREE.Mesh(new THREE.SphereGeometry(0.31,22,18),skinM);head.position.y=0.3;head.castShadow=true;headG.add(head);
+    const cap=new THREE.Mesh(new THREE.SphereGeometry(0.325,22,12,0,Math.PI*2,0,Math.PI*0.52),hairM);cap.position.y=0.33;cap.rotation.x=-0.3;headG.add(cap);
+    if(LONG_HAIR[i%6]&&!isLead){const back=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.42,0.16),hairM);back.position.set(0,0.2,-0.2);headG.add(back);}
+    const eyeM=new THREE.MeshBasicMaterial({color:0x1F2937});
+    for(const s of [-1,1]){const e=new THREE.Mesh(new THREE.SphereGeometry(0.035,8,6),eyeM);e.position.set(0.1*s,0.3,0.28);headG.add(e);}
+    const cheekM=new THREE.MeshBasicMaterial({color:0xF4A6A6,transparent:true,opacity:0.5});
+    for(const s of [-1,1]){const c=new THREE.Mesh(new THREE.CircleGeometry(0.04,10),cheekM);c.position.set(0.17*s,0.22,0.27);c.rotation.y=0.5*s;headG.add(c);}
+    const arms=[];for(const s of [-1,1]){const pv=new THREE.Group();pv.position.set(0.26*s,0.8,0);
+      const a=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.34,0.11),shirtM);a.position.y=-0.16;a.castShadow=true;pv.add(a);
+      const hand=new THREE.Mesh(new THREE.SphereGeometry(0.06,8,6),skinM);hand.position.y=-0.36;pv.add(hand);g.add(pv);arms.push(pv);}
+    const shadow=new THREE.Mesh(new THREE.CircleGeometry(0.34,18),new THREE.MeshBasicMaterial({color:0x0F172A,transparent:true,opacity:0.16,depthWrite:false}));shadow.rotation.x=-Math.PI/2;shadow.position.y=0.015;
+    g.traverse(o=>{if(o.material){o.material=o.material.clone();o.material.transparent=true;}});
+    g.scale.setScalar(1.15);
+    g.userData={legs,arms,headG,torso,shadow,shirt};
+    scene.add(g);scene.add(shadow);
+    return g;
+  }
+  // selection ring
+  const ring=new THREE.Mesh(new THREE.RingGeometry(0.42,0.52,32),new THREE.MeshBasicMaterial({color:0x111827,transparent:true,opacity:0.85,depthWrite:false}));
+  ring.rotation.x=-Math.PI/2;ring.position.y=0.02;ring.visible=false;scene.add(ring);
+
+  // papers
+  const paperGeo=new THREE.PlaneGeometry(0.28,0.36);
+  const papers=[];
+  function spawnPaper(from,to,color){
+    const m=new THREE.Mesh(paperGeo,new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide}));
+    m.position.copy(from);scene.add(m);papers.push({m,from:from.clone(),to:to.clone(),t:0,dur:1.1+Math.random()*0.3});
+  }
+
+  function mkLabel(name){const d=document.createElement("div");d.className="zl";d.innerHTML=`<b>${name}</b><span></span>`;overlay.appendChild(d);return d;}
+  const ZL={
+    desks:{el:mkLabel("Coordinator desks"),p:new THREE.Vector3(-4,0.1,4.1)},
+    ai:{el:mkLabel("AI auto-issue"),p:new THREE.Vector3(-8.4,2.7,-7.2)},
+    rules:{el:mkLabel("Rules board"),p:new THREE.Vector3(5.7,2.9,-7.8)},
+    meet:{el:mkLabel("Meeting"),p:new THREE.Vector3(6.5,0.1,0.8)},
+    lounge:{el:mkLabel("Lounge"),p:new THREE.Vector3(6.5,1.6,6.6)},
+    exit:{el:mkLabel("Exit"),p:new THREE.Vector3(-10.9,3.1,5.2)}
+  };
+
+  let agents=[], profile="Option B", horizon="12m", mot=70, signature="", lastScores=null, selKey=null;
+  const tmpV=new THREE.Vector3();
+
+  function clearAgents(){for(const a of agents){scene.remove(a.g);scene.remove(a.g.userData.shadow);a.bub.remove();}agents=[];}
+  function zoneStyle(){
+    const isA=profile==="Option A",isB=profile==="Option B",pre=profile==="Before AI";
+    deskPad.material.opacity=isA?0.16:(isB?0.05:0);deskPad.material.color.set(isA?0xF59E0B:0x3B82F6);
+    rulesPad.material.opacity=isB?0.16:0;loungePad.material.opacity=isB?0.12:0;
+    meetPad.material.opacity=isA?0.12:(isB?0.08:0);meetPad.material.color.set(isA?0xF59E0B:0x3B82F6);
+    boardM.emissiveIntensity=isB?0.35:0;rulesLight.intensity=isB?0.9:0;
+    ruleCards.forEach((c,i)=>c.material.color.set(isB?(i%2?0x93C5FD:0xBFDBFE):0xCBD5E1));
+    aiLight.intensity=pre?0:0.6;
+    const set=(z,txt,cls)=>{const e=ZL[z].el;e.querySelector("span").textContent=txt;e.className="zl"+(cls?" "+cls:"");e.querySelector("span").hidden=!txt;};
+    set("desks",isA?"exceptions · SLA firefight":(isB?"complex cases":"manual, end to end"),isA?"warm":(isB?"lit":""));
+    set("ai",pre?"not installed yet":"same tech both options",pre?"dim":"");
+    set("rules",isB?"tune auto-issue":"idle",isB?"lit":"dim");
+    set("meet",isA?"stand-up · escalate":(isB?"coach + case review":"weekly huddle"),isA?"warm":(isB?"lit":""));
+    set("lounge",isA?"buffer · empty":(isB?"coach-pair · Relatedness":"breaks"),isB?"lit":(isA?"dim":""));
+    set("exit","","");
+  }
+  function speedMul(){return 1+Math.max(-0.25,Math.min(0.4,(55-mot)/110));}
+  function setCast(cast,prof,h,r,scores){
+    mot=r.Motivation;lastScores=scores;
+    if(cast.leaveCount!==Office._lastLeave){Office._lastLeave=cast.leaveCount;const d=$("door");d.classList.remove("bump");void d.offsetWidth;d.classList.add("bump");}
+    const sig=prof+"|"+h+"|"+cast.agents.map(a=>a.status+"@"+a.zone).join(",");
+    if(sig===signature){renderCard();return;}
+    signature=sig;profile=prof;horizon=h;clearAgents();zoneStyle();
+    const used={ai:0,rules:0,meet:1,lounge:0};let desk=0;
+    // Team lead (context character, always at the meeting table)
+    const lead={spec:{status:"lead",zone:"meet",poseHint:"talk"},key:"lead",person:LEAD,lead:true};
+    const all=[lead,...cast.agents.map((s,i)=>({spec:s,key:"p"+i,person:PEOPLE[i],idx:i}))];
+    for(const a of all){
+      const g=makeHuman(a.lead?99:a.idx,prof,a.lead);
+      let home;
+      if(a.lead)home=SPOTS.meet[0];
+      else if(a.spec.zone==="desks"||a.spec.zone==="exit")home=deskSeats[desk++%deskSeats.length];
+      else{const list=SPOTS[a.spec.zone];home=list[used[a.spec.zone]++%list.length];}
+      const bub=document.createElement("button");bub.type="button";bub.className="bub";overlay.appendChild(bub);
+      bub.addEventListener("click",ev=>{ev.stopPropagation();select(a.key);});
+      Object.assign(a,{g,bub,home,pos:new THREE.Vector3(home.x,0,home.z),path:[],state:"dwell",timer:reduce?1e9:(1+Math.random()*4),cur:home,face:home.face??0,phase:Math.random()*6,fade:1,away:false});
+      if(a.spec.status==="leaving"){a.timer=reduce?1e9:2+a.idx*0.8;}
+      g.userData.agent=a;g.position.copy(a.pos);agents.push(a);
+    }
+    if(selKey&&!agents.find(a=>a.key===selKey))selKey=null;
+    renderCard();
+  }
+  // routing through aisles
+  const inBay=p=>p.x<-0.3&&p.x>-7.6&&p.z>-2.6&&p.z<3.6;
+  const AZ=0.35;
+  function route(from,to){
+    const pts=[];
+    const west=(to.zone==="ai"||to.zone==="outbox"||to.zone==="exit");
+    const westFrom=(from.zone==="ai"||from.zone==="outbox"||from.zone==="exit");
+    if(inBay(from))pts.push({x:from.x,z:AZ});
+    if(westFrom){if(from.zone!=="exit")pts.push({x:-8.7,z:-4.4});pts.push({x:-8.7,z:AZ});}
+    if(!inBay(from)&&!westFrom&&from.x>0&&(inBay(to)||west))pts.push({x:1.4,z:AZ});
+    if(inBay(to))pts.push({x:to.x,z:AZ});
+    else if(west){pts.push({x:-8.7,z:AZ});if(to.zone!=="exit")pts.push({x:-8.7,z:-4.4});}
+    else if(inBay(from)||westFrom)pts.push({x:1.4,z:AZ});
+    pts.push({x:to.x,z:to.z});return pts;
+  }
+  function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+  function nextTrip(a){
+    if(a.lead)return null;
+    const s=a.spec.status, isA=profile==="Option A";
+    if(s==="leaving")return SPOTS.exit[0];
+    if(a.away)return a.home;
+    if(isA){
+      if(s==="exception_firefight"||s==="routine_desk")return Math.random()<0.6?pick(SPOTS.ai):SPOTS.meet[1+Math.floor(Math.random()*3)];
+      if(s==="escalate")return null;
+      return null;
+    }
+    if(profile==="Option B"){
+      if(s==="rule_tune")return Math.random()<0.5?pick(SPOTS.ai):null;
+      if(s==="complex_case"&&a.home.zone==="desks")return Math.random()<0.45?(Math.random()<0.5?pick(SPOTS.rules):SPOTS.meet[2+Math.floor(Math.random()*2)]):null;
+      return null;
+    }
+    if(s==="routine_desk")return Math.random()<0.45?SPOTS.outbox[0]:null;
+    return null;
+  }
+  function dwellTime(a){
+    const isA=profile==="Option A";
+    if(a.spec.status==="leaving")return 3+Math.random()*3;
+    if(a.away)return isA?1.2+Math.random()*1.5:3+Math.random()*3;
+    return isA?2.2+Math.random()*2.5:(profile==="Option B"?7+Math.random()*6:6+Math.random()*5);
+  }
+  function zoneOf(a){const walking=a.state==="walk"||a.state==="fade";if(a.spec.status==="leaving"&&(walking||a.state==="gone"))return "exit";return walking?((a.dest&&a.dest.zone)||a.home.zone):(a.cur.zone||"desks");}
+  function stepAgent(a,dt,t){
+    const ud=a.g.userData;
+    if(a.state==="dwell"){
+      a.timer-=dt;
+      if(a.timer<=0){
+        const tgt=nextTrip(a);
+        if(tgt){a.path=route(a.cur,tgt);a.dest=tgt;a.state="walk";a.away=(tgt!==a.home)&&a.spec.status!=="leaving";}
+        else a.timer=dwellTime(a);
+      }
+    }
+    if(a.state==="walk"){
+      const spd=(profile==="Option A"?2.4:1.6)*speedMul();
+      const p=a.path[0];const dx=p.x-a.pos.x,dz=p.z-a.pos.z;const dist=Math.hypot(dx,dz);
+      if(dist<0.05){a.path.shift();if(!a.path.length){a.state="dwell";a.cur=a.dest;a.timer=dwellTime(a);
+          if(a.spec.status==="leaving")a.state="fade";
+          if(a.dest===a.home)a.away=false;}}
+      else{const st=Math.min(dist,spd*dt);a.pos.x+=dx/dist*st;a.pos.z+=dz/dist*st;a.face=Math.atan2(dx,dz);}
+    }
+    if(a.state==="fade"){a.fade-=dt*1.2;if(a.fade<=0){a.fade=0;a.state="gone";a.timer=5+Math.random()*3;
+        const d=$("door");d.classList.remove("bump");void d.offsetWidth;d.classList.add("bump");}}
+    if(a.state==="gone"){a.timer-=dt;if(a.timer<=0){a.pos.set(a.home.x,0,a.home.z);a.cur=a.home;a.state="fadein";}}
+    if(a.state==="fadein"){a.fade+=dt*1.5;if(a.fade>=1){a.fade=1;a.state="dwell";a.timer=dwellTime(a);}}
+    const walking=a.state==="walk"||a.state==="fade";
+    const atZone=walking?null:(a.cur.zone||"desks");
+    const seat=!walking&&a.cur.seat;
+    const pose=walking?"walk":(seat?"sit":"stand");
+    let upper=a.spec.poseHint;
+    if(!walking){
+      if(a.lead)upper=profile==="Option A"?"think":"talk";
+      else if(atZone==="ai"||atZone==="outbox")upper="type";
+      else if(atZone==="rules")upper="think";
+      else if(atZone==="meet")upper=(profile==="Option A"&&a.spec.status==="escalate")?"wave":"talk";
+      else if(atZone==="lounge")upper=a.spec.status==="coach_pair"?"talk":"idle";
+      else if(atZone==="desks")upper=(a.spec.status==="exception_firefight"||a.spec.status==="routine_desk")?"type":(a.spec.status==="leaving"?"idle":"think");
+    }
+    const tt=t+a.phase;
+    ud.legs[0].rotation.set(0,0,0);ud.legs[1].rotation.set(0,0,0);ud.arms[0].rotation.set(0,0,0);ud.arms[1].rotation.set(0,0,0);ud.headG.rotation.set(0,0,0);
+    let y=0;
+    if(pose==="walk"){const f=profile==="Option A"?11:8;const s=Math.sin(tt*f);ud.legs[0].rotation.x=s*0.7;ud.legs[1].rotation.x=-s*0.7;ud.arms[0].rotation.x=-s*0.6;ud.arms[1].rotation.x=s*0.6;
+      y=Math.abs(Math.cos(tt*f))*(profile==="Option A"?0.1:0.05);}
+    if(pose==="sit"){ud.legs[0].rotation.x=-1.5;ud.legs[1].rotation.x=-1.5;y=0.06+(a.cur.sy||0);}
+    if(!walking&&!reduce){
+      if(upper==="type"){const q=profile==="Option A"?16:9;ud.arms[0].rotation.x=-1.2+Math.sin(tt*q)*0.12;ud.arms[1].rotation.x=-1.2+Math.cos(tt*q)*0.12;ud.headG.rotation.x=0.1;}
+      else if(upper==="think"){ud.arms[1].rotation.x=-2.3;ud.arms[1].rotation.z=0.3;ud.headG.rotation.z=Math.sin(tt*0.8)*0.12;}
+      else if(upper==="wave"){ud.arms[1].rotation.z=2.6+Math.sin(tt*8)*0.3;ud.arms[0].rotation.x=-0.3;}
+      else if(upper==="talk"){ud.arms[0].rotation.x=-0.7+Math.sin(tt*2.4)*0.3;ud.headG.rotation.y=Math.sin(tt*0.9)*0.3;}
+      else if(upper==="idle"){ud.headG.rotation.y=Math.sin(tt*0.4)*0.5;ud.headG.rotation.x=0.15;}
+    } else if(!walking&&reduce){if(upper==="type"){ud.arms[0].rotation.x=-1.2;ud.arms[1].rotation.x=-1.2;}if(upper==="wave")ud.arms[1].rotation.z=2.6;}
+    if(pose!=="sit"&&!walking&&!reduce)y+=Math.abs(Math.sin(tt*1.6))*0.015;
+    a.g.position.set(a.pos.x,y,a.pos.z);
+    let face=a.face;
+    if(!walking){const c=a.cur;if(c.look)face=Math.atan2(c.look.x-a.pos.x,c.look.z-a.pos.z);else if(c.face!==undefined)face=c.face;}
+    a.g.rotation.y=face;
+    ud.shadow.position.set(a.pos.x,0.015,a.pos.z);
+    const op=a.state==="gone"?0:a.fade;
+    if(a._op!==op){a.g.traverse(o=>{if(o.material&&o.material!==ud.shadow.material)o.material.opacity=op;});ud.shadow.material.opacity=0.16*op;a._op=op;}
+    a.g.visible=op>0.01;
+    const z=zoneOf(a);
+    let label;
+    if(a.lead)label=LEAD_TEXT[profile].label;
+    else if(a.spec.status==="leaving")label=a.state==="dwell"||a.state==="fadein"?"job hunting":"leaving";
+    else label=bubbleLabelFor(a.spec,z==="outbox"?"desks":z,profile);
+    if(a._lab!==label){a.bub.textContent=label;a._lab=label;
+      const s=a.spec.status;a.bub.className="bub "+(a.lead?"lead":label==="AI"?"ai":s==="leaving"?"leave":(s==="exception_firefight"||s==="escalate"?"warm":(profile==="Option B"&&s!=="buffer_idle"&&s!=="routine_desk"?"cool":"")));
+      a.bub.setAttribute("aria-label",`${a.person.name}: ${label}. Show details`);}
+    a.bubY=(y+(seat?1.95:1.85))*1;
+  }
+  function project(v){tmpV.copy(v).project(cam);return {x:(tmpV.x+1)/2*host.clientWidth,y:(1-tmpV.y)/2*host.clientHeight};}
+  function resize(){const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);const asp=w/h;const vh=asp<1.2?20:15;
+    cam.left=-vh*asp/2;cam.right=vh*asp/2;cam.top=vh/2;cam.bottom=-vh/2;cam.updateProjectionMatrix();}
+  new ResizeObserver(resize).observe(host);resize();
+
+  /* ---------- Tap a person ---------- */
+  const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();let downAt=null;
+  renderer.domElement.addEventListener("pointerdown",e=>{downAt={x:e.clientX,y:e.clientY};});
+  renderer.domElement.addEventListener("pointerup",e=>{
+    if(!downAt||Math.hypot(e.clientX-downAt.x,e.clientY-downAt.y)>6)return;downAt=null;
+    const r=renderer.domElement.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);
+    ray.setFromCamera(ndc,cam);
+    const hits=ray.intersectObjects(agents.filter(a=>a.g.visible).map(a=>a.g),true);
+    if(hits.length){let o=hits[0].object;while(o&&!o.userData.agent)o=o.parent;if(o){select(o.userData.agent.key);return;}}
+    select(null);
+  });
+  function select(key){selKey=key;renderCard();}
+  const card=$("pcard");
+  $("pcard-close").addEventListener("click",()=>select(null));
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&selKey)select(null);});
+  const ZONE_NAME={desks:"desk",ai:"AI console",rules:"rules board",meet:"meeting table",lounge:"lounge",exit:"exit",outbox:"printer"};
+  function taskFor(a){
+    const s=a.spec.status;
+    if(a.lead)return LEAD_TEXT[profile].task;
+    if(s==="leaving"){
+      if(a.state==="gone")return "Has left the team. The seat is vacant until it is backfilled.";
+      if(a.state==="walk"||a.state==="fade")return "Walking out. "+TASKS.leaving[profile]+".";
+      return "Updating CV between tasks. "+TASKS.leaving[profile]+".";
+    }
+    const z=zoneOf(a);
+    if(z==="ai"&&AI_TASK[profile])return AI_TASK[profile];
+    if(z==="outbox")return "Collecting printed letters to sign and post";
+    const list=s==="routine_desk"?TASKS.routine_desk[profile]:TASKS[s];
+    let txt=list[a.idx%list.length];
+    if(a.state==="walk")txt="Heading to the "+ZONE_NAME[z]+". "+txt;
+    return txt;
+  }
+  function quoteFor(a){if(a.lead)return LEAD_TEXT[profile].quote;const q=QUOTES[a.spec.status];return typeof q==="string"?q:q[profile];}
+  const SHORT={SV:"Skill variety",TI:"Task identity",TS:"Significance",Autonomy:"Job autonomy",Feedback:"Feedback",SDT_Autonomy:"Felt autonomy",SDT_Competence:"Competence",SDT_Relatedness:"Relatedness"};
+  let cardTab="after";
+  card.addEventListener("click",e=>{const t=e.target.closest("[data-tab]");if(t){cardTab=t.dataset.tab;renderCard();}});
+  function roleOf(status,prof){const r=ROLE[status];return typeof r==="string"?r:r[prof];}
+  function roleDesc(status,prof){if(status==="leaving")return TASKS.leaving[prof]+".";const r=ROLE_DESC[status];return typeof r==="string"?r:r[prof];}
+  function perfRows(P,showDelta){
+    if(!lastScores)return "";
+    const o=atH(lastScores[P],horizon),b=atH(lastScores["Before AI"],horizon);
+    const rows=[["Volume","Volume",false],["Quality","Quality",false],["Motivation","Motivation",false],["Retention","Retention risk",true]];
+    return `<div class="pc-perf">`+rows.map(([k,l,low])=>{
+      const d=o[k]-b[k];let ds="";
+      if(showDelta&&Math.abs(d)>=0.05){const good=low?d<0:d>0;ds=`<em class="${good?"up":"dn"}">${d>0?"▲":"▼"}${Math.abs(d).toFixed(1)}</em>`;}
+      return `<div><span>${l}</span><b class="mono">${o[k].toFixed(1)}</b>${ds}</div>`;}).join("")+`</div>`;
+  }
+  function renderCard(){
+    const a=agents.find(x=>x.key===selKey);
+    ring.visible=!!a;
+    if(!a){card.hidden=true;return;}
+    card.hidden=false;
+    const hx="#"+a.g.userData.shirt.toString(16).padStart(6,"0");
+    const first=a.person.name.split(" ")[0];
+    let h=`<div class="pc-head"><span class="pc-av" style="background:${hx}"></span><div class="pc-id"><b>${a.person.name}</b><small>${a.lead?"HR Ops Team Lead":"HR Ops Coordinator · "+a.person.yrs+" yr"+(a.person.yrs>1?"s":"")+" in the team"}</small></div></div>`;
+    if(a.lead){
+      h+=`<div class="pc-role"><span class="eyebrow">Doing now</span><p data-k="task">${taskFor(a)}</p></div><p class="pc-q">“${LEAD_TEXT[profile].quote}”</p><p class="pc-note">Mei leads the team. Her job is context only and is not scored.</p>`;
+      card.querySelector(".pc-body").innerHTML=h;return;
+    }
+    const pre=profile==="Before AI";
+    const tab=pre?"before":cardTab;
+    const after=profile==="Option A"?"Automate only":"Redesign";
+    if(!pre)h+=`<div class="pc-tabs" role="tablist"><button type="button" role="tab" data-tab="before" aria-selected="${tab==="before"}">Before AI</button><button type="button" role="tab" data-tab="after" aria-selected="${tab==="after"}" class="${profile==="Option A"?"ta":"tb"}">After AI</button></div>`;
+    const P=tab==="before"?"Before AI":profile;
+    const status=tab==="before"?"routine_desk":a.spec.status;
+    const cls=P==="Option A"?"ra":P==="Option B"?"rb":"r0";
+    const task=tab==="before"?TASKS.routine_desk["Before AI"][a.idx%TASKS.routine_desk["Before AI"].length]:taskFor(a);
+    const quote=tab==="before"?QUOTES.routine_desk["Before AI"]:quoteFor(a);
+    h+=`<div class="pc-role ${cls}"><span class="eyebrow">Role</span><b>${roleOf(status,P)}</b><small>${roleDesc(status,P)}</small></div>`;
+    h+=`<div class="pc-sec"><span class="eyebrow">${tab==="before"?"A typical task":"Doing now"}</span><p ${tab==="before"?"":'data-k="task"'}>${task}</p><p class="pc-q">“${quote}”</p></div>`;
+    const pin=state.inputs[profile],pb=state.inputs["Before AI"];
+    const ks=Object.keys(SHORT);
+    if(pre){
+      const top=ks.slice().sort((x,y)=>pb[y]-pb[x]).slice(0,3);
+      h+=`<div class="pc-sec"><span class="eyebrow">Strongest parts of the job</span><div class="pc-chg">${top.map(k=>`<div><span>${SHORT[k]}</span><b class="mono">${pb[k]}</b><i></i></div>`).join("")}</div></div>`;
+    }else{
+      const top=ks.slice().sort((x,y)=>Math.abs(pin[y]-pb[y])-Math.abs(pin[x]-pb[x])).slice(0,3);
+      const rising=top.filter(k=>pin[k]>pb[k]).length>=2;
+      if(tab==="after")h+=`<div class="pc-sec"><span class="eyebrow">${rising?"Biggest gains":"Biggest drops"} in the job</span><div class="pc-chg">${top.map(k=>{const d=pin[k]-pb[k];
+        return `<div><span>${SHORT[k]}</span><b class="mono">${pb[k]} → ${pin[k]}</b><em class="${d>0?"up":d<0?"dn":""}">${d>0?"▲"+d:d<0?"▼"+Math.abs(d):"="}</em></div>`;}).join("")}</div></div>`;
+      else h+=`<div class="pc-sec"><span class="eyebrow">The same 3 dimensions before AI</span><div class="pc-chg">${top.map(k=>`<div><span>${SHORT[k]}</span><b class="mono">${pb[k]}</b><i></i></div>`).join("")}</div></div>`;
+    }
+    h+=`<div class="pc-sec"><span class="eyebrow">Performance at ${horizon==="3m"?"3 months":"12 months"}${tab==="after"&&!pre?" · vs Before AI":""}</span>${perfRows(P,tab==="after"&&!pre)}</div>`;
+    if(pre)h+=`<p class="pc-note">Choose Automate only or Redesign above to see how ${first}'s job changes.</p>`;
+    else h+=`<p class="pc-note">Scores are for the job design, so everyone in this design shares them.</p>`;
+    card.querySelector(".pc-body").innerHTML=h;
+  }
+  let cardTick=0;
+
+  let last=performance.now(),T=0,paperTimer=0,excTimer=1.2;
+  const AI_FROM=new THREE.Vector3(-8.4,1.5,-6.6),TRAY=new THREE.Vector3(-5.6,1.0,-7.2);
+  function loop(now){
+    requestAnimationFrame(loop);
+    const dt=Math.min(0.05,(now-last)/1000);last=now;
+    if(!state.paused){
+      T+=dt;
+      for(const a of agents)stepAgent(a,dt,T);
+      if(!reduce){
+        paperTimer-=dt;excTimer-=dt;
+        const deskers=agents.filter(a=>!a.lead&&a.state==="dwell"&&a.cur.zone==="desks"&&a.spec.status!=="leaving");
+        if(profile==="Before AI"){
+          if(paperTimer<=0){paperTimer=2.2;if(deskers.length){const tg=pick(deskers);spawnPaper(new THREE.Vector3(tg.cur.desk.x,0.9,tg.cur.desk.z),TRAY,0xFFFFFF);}}
+        }else{
+          if(paperTimer<=0){paperTimer=0.9;spawnPaper(new THREE.Vector3(AI_FROM.x+(Math.random()-0.5)*0.8,AI_FROM.y,AI_FROM.z),TRAY,0xFFFFFF);}
+          if(excTimer<=0){excTimer=2.6;if(deskers.length){const tg=pick(deskers);spawnPaper(AI_FROM,new THREE.Vector3(tg.cur.desk.x+0.3,0.85,tg.cur.desk.z+0.1),profile==="Option A"?0xF59E0B:0x3B82F6);}}
+        }
+        for(let i=papers.length-1;i>=0;i--){const p=papers[i];p.t+=dt/p.dur;const k=Math.min(1,p.t);
+          p.m.position.lerpVectors(p.from,p.to,k);p.m.position.y+=Math.sin(k*Math.PI)*1.6;p.m.rotation.set(-Math.PI/2+Math.sin(k*6)*0.4,k*4,0);
+          if(p.t>=1){scene.remove(p.m);p.m.material.dispose();papers.splice(i,1);}}
+        if(profile!=="Before AI")aiScreen.material.color.setHSL(0.52,0.75,0.5+Math.sin(T*2)*0.06);else aiScreen.material.color.set(0x334155);
+        if(profile==="Option B")boardM.emissiveIntensity=0.3+Math.sin(T*1.5)*0.08;
+      }else if(profile==="Before AI")aiScreen.material.color.set(0x334155);
+      cardTick-=dt;if(cardTick<=0&&selKey){cardTick=0.5;const a=agents.find(x=>x.key===selKey);if(a){const el=card.querySelector('[data-k="task"]');if(el)el.textContent=taskFor(a);}}
+    }
+    const sa=agents.find(x=>x.key===selKey);
+    if(sa){ring.position.set(sa.pos.x,0.02,sa.pos.z);ring.material.opacity=0.85*(sa._op??1);}
+    controls&&controls.update();
+    renderer.render(scene,cam);
+    for(const k in ZL){const {el,p}=ZL[k];const s=project(p);el.style.left=s.x+"px";el.style.top=s.y+"px";}
+    for(const a of agents){const s=project(new THREE.Vector3(a.pos.x,a.bubY,a.pos.z));a.bub.style.left=s.x+"px";a.bub.style.top=s.y+"px";
+      const vis=a.g.visible?(a._op??1):0;a.bub.style.opacity=vis;a.bub.style.pointerEvents=vis>0.3?"auto":"none";a.bub.classList.toggle("on",a.key===selKey);}
+  }
+  requestAnimationFrame(loop);
+  $("btn-view").addEventListener("click",()=>{cam.position.copy(HOME_POS);cam.zoom=1;cam.updateProjectionMatrix();if(controls){controls.target.copy(TARGET);controls.update();}else cam.lookAt(TARGET);});
+  $("btn-pause").addEventListener("click",e=>{state.paused=!state.paused;e.target.textContent=state.paused?"Play":"Pause";});
+  return {setCast,select,refreshCard:()=>renderCard(),_lastLeave:null};
+})();
+window.Office=Office;
+
+
+/* ================= Boot ================= */
+buildSliders();buildConsts();syncControls();update();
+(function(){const checks=runParity();const pass=checks.filter(c=>c.ok).length;const el=$("pill-parity");
+  el.classList.toggle("fail",pass<checks.length);
+  el.lastElementChild.textContent=pass===checks.length?`v1 parity: ${pass}/${checks.length} checks pass`:`v1 parity: ${pass}/${checks.length} pass`;
+  el.title=checks.map(c=>(c.ok?"✓ ":"✗ ")+c.name).join("\n");})();
+(function(){let seen=false;try{seen=localStorage.getItem("wds-intro-seen")==="1";}catch(e){}if(!seen)openIntro();})();
+</script>
+
+</body></html>
